@@ -103,7 +103,7 @@ public class VertexArrayExample {
 		
 		//Load some textures
 		try {
-			tex = new Texture(getResource("res/small.png"), Texture.LINEAR);
+			tex = new Texture(getResource("res/tiles.png"), Texture.LINEAR);
 			tex2 = new Texture(getResource("res/font0.png"));
 		} catch (IOException e) {
 			throw new RuntimeException("couldn't decode textures");
@@ -117,13 +117,10 @@ public class VertexArrayExample {
 		batch.begin();
 		
 		batch.draw(tex, 50, 50);
-		batch.draw(tex, 150, 150, tex.width*2, tex.height*2);
-		
-		batch.draw(tex2, 350, 25);
+		batch.drawRegion(tex, 0, 0, 64, 64, 50, 350); //draw a single tile
 		
 		batch.setColor(1f, 0f, 0f, 1f); //tint red
-		batch.drawRegion(tex2, 25, 50, 100, 32, 
-							350, 350);  
+		batch.draw(tex2, 350, 25);
 		batch.setColor(1f, 1f, 1f, 1f); //reset color..
 		
 		batch.end();
