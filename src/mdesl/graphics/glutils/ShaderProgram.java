@@ -58,7 +58,7 @@ import java.util.List;
 /**
  * A bare-bones ShaderProgram utility based on ra4king's ArcSynthesis Java ports. 
  * 
- * @author ra4king
+ * @author ra4king, modifications by davedes
  */
 public class ShaderProgram {
 
