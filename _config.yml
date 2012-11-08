@@ -4,7 +4,6 @@ permalink: none
 baseurl: "lwjgl-basics"
 exclude:
 - .gitignore
-- README.md
 
 prose:
   rooturl: "_posts"
