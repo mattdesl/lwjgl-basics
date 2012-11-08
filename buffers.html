@@ -15,6 +15,13 @@
     <link rel="stylesheet" href="stylesheets/ie.css">
     <![endif]-->
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	
+	<script type="text/javascript" src="javascripts/shCore.js"></script>
+	<script type="text/javascript" src="javascripts/shBrushJava.js"></script>
+	 
+	<!-- Include *at least* the core style and default theme -->
+	<link href="stylesheets/shCore.css" rel="stylesheet" type="text/css" />
+	<link href="stylesheets/shThemeDefault.css" rel="stylesheet" type="text/css" />
 
   </head>
   <body>
@@ -57,7 +64,7 @@ buffer.put(d);
 buffer.flip();
 
 //loop through all of the bytes that were written, using "relative get"
-for (int i=0; i<buffer.limit(); i++) {
+for (int i=0; i&lt;buffer.limit(); i++) {
     System.out.println( buffer.get() );
 }
 </code></pre>
@@ -79,7 +86,7 @@ int limit = position;
 position = 0;
 
 //printing our values
-for (int i=0; i<limit; i++) {
+for (int i=0; i&lt;limit; i++) {
     //using a relative "get", position inreases each time
     System.out.println( array[position++] );
 }
@@ -113,7 +120,7 @@ glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_B
 
 <p>Below is an example of getting data from GL:</p>
 
-<pre><code>
+<pre class="brush: java">
 IntBuffer buffer = BufferUtils.createIntBuffer(1);
 
 //this will call the relative "put" on our buffer
@@ -124,14 +131,20 @@ buffer.flip();
 
 //now we can get the max size as a Java int
 int maxSize = buffer.get();
-</code></pre>
+</pre>
 
 <p>As described <a href="http://www.khronos.org/opengles/documentation/opengles1_0/html/glGetInteger.html">here</a>, GL_MAX_TEXTURE_SIZE will give us one value. Some other parameters may return more values, and in that case we would have to create our buffer with a larger capacity. Where possible, you should try to re-use buffers in situations such as this.</p>
 
 <p>Also note that LWJGL includes convenience methods for glGetInteger, glGenTextures, and various other calls. So the above code could be reduced to the following:</p>
-<pre><code>
+<pre>
 int maxSize = glGetInteger(GL_MAX_TEXTURE_SIZE);
-</code></pre>
+</pre>
+
+
+
+<script type="text/javascript">
+     SyntaxHighlighter.all()
+</script>
 
     </div>
     <!--[if !IE]><script>fixScale(document);</script><![endif]-->
