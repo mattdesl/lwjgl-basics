@@ -9,7 +9,7 @@ The [source code](https://github.com/mattdesl/lwjgl-basics) is hosted on GitHub.
 ### Snippets
 
 The wiki will also host various code snippets and tutorials for LWJGL and OpenGL:  
-https://github.com/mattdesl/lwjgl-basics/wiki
+[https://github.com/mattdesl/lwjgl-basics/wiki](https://github.com/mattdesl/lwjgl-basics/wiki)
 
 ### Credits
 
