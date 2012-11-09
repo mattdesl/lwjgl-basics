@@ -1,76 +1,150 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Lwjgl-basics by mattdesl</title>
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="javascripts/respond.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
     <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <!--[if lt IE 8]>
-    <link rel="stylesheet" href="stylesheets/ie.css">
-    <![endif]-->
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-
+    <title>Buffers by mattdesl</title>
   </head>
+
   <body>
-      <div id="header">
-        <nav>
-          <li class="fork"><a href="https://github.com/mattdesl/lwjgl-basics">View On GitHub</a></li>
-          <li class="downloads"><a href="https://github.com/mattdesl/lwjgl-basics/zipball/master">ZIP</a></li>
-          <li class="downloads"><a href="https://github.com/mattdesl/lwjgl-basics/tarball/master">TAR</a></li>
-          <li class="title">DOWNLOADS</li>
-        </nav>
-      </div><!-- end header -->
+    <div id="container">
+      <div class="inner">
 
-    <div class="wrapper">
+        <header>
+          <h1>Buffers</h1>
+          <h2>Some basic examples of &quot;modern&quot; GL - shaders, custom attributes, etc.</h2>
+        </header>
 
-      <section>
-        <div id="title">
-          <h1>Lwjgl-basics</h1>
-          <p>Some basic examples of &quot;modern&quot; GL - shaders, custom attributes, etc.</p>
-          <hr>
-          <span class="credits left">Project maintained by <a href="https://github.com/mattdesl">mattdesl</a></span>
-          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
-        </div>
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/mattdesl/lwjgl-basics/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/mattdesl/lwjgl-basics/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/mattdesl/lwjgl-basics" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
 
-        <h3>Welcome to GitHub Pages.</h3>
+        <hr>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+        <section id="main_content">
+          <h2>Java NIO Buffers</h2>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
+<p>This is a short introduction to Java NIO buffers, which are commonly used in LWJGL to handle GL data. For a more detailed look at buffers, <a href="http://tutorials.jenkov.com/java-nio/buffers.html">see here</a>.</p>
 
-<div class="highlight"><pre><span class="kt">int</span> <span class="n">test</span> <span class="o">=</span> <span class="mi">3</span><span class="o">;</span>
+<h3>Intro</h3>
+
+<p>A buffer is simply a block of memory which holds some data. For our purposes, you can think of it as an array of elements. However, instead of random access (e.g. <code>array[i]</code>), Buffers read and write data relative to their current position. To demonstrate, let's say we wish to create a buffer which holds four bytes, and then read those bytes out. You would create it like so:</p>
+
+<div class="highlight"><pre><span class="c1">//LWJGL includes utilities for easily creating buffers</span>
+<span class="n">ByteBuffer</span> <span class="n">buffer</span> <span class="o">=</span> <span class="n">BufferUtils</span><span class="o">.</span><span class="na">createByteBuffer</span><span class="o">(</span><span class="mi">4</span><span class="o">);</span>
+
+<span class="c1">//"relative put" method, which places the byte and </span>
+<span class="c1">//then moves the position forward</span>
+<span class="n">buffer</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">a</span><span class="o">);</span>
+<span class="n">buffer</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">b</span><span class="o">);</span>
+<span class="n">buffer</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">c</span><span class="o">);</span>
+<span class="n">buffer</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">d</span><span class="o">);</span>
+
+<span class="c1">//flip the position to reset the relative position to zero</span>
+<span class="n">buffer</span><span class="o">.</span><span class="na">flip</span><span class="o">();</span>
+
+<span class="c1">//loop through all of the bytes that were written, using "relative get"</span>
+<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">buffer</span><span class="o">.</span><span class="na">limit</span><span class="o">();</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span> <span class="n">buffer</span><span class="o">.</span><span class="na">get</span><span class="o">()</span> <span class="o">);</span>
+<span class="o">}</span>
 </pre></div>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<p>To understand what's happening, comparing it to a Java array:</p>
 
-<h3>Designer Templates</h3>
+<div class="highlight"><pre><span class="c1">//creating the fixed-size array..</span>
+<span class="kt">byte</span><span class="o">[]</span> <span class="n">array</span> <span class="o">=</span> <span class="k">new</span> <span class="kt">byte</span><span class="o">[</span><span class="mi">4</span><span class="o">];</span>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<span class="c1">//position starts at 0</span>
+<span class="kt">int</span> <span class="n">position</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
 
-<h3>Rather Drive Stick?</h3>
+<span class="c1">//using a relative "put", position inreases each time</span>
+<span class="n">array</span><span class="o">[</span><span class="n">position</span><span class="o">++]</span> <span class="o">=</span> <span class="n">a</span><span class="o">;</span>
+<span class="n">array</span><span class="o">[</span><span class="n">position</span><span class="o">++]</span> <span class="o">=</span> <span class="n">b</span><span class="o">;</span>
+<span class="n">array</span><span class="o">[</span><span class="n">position</span><span class="o">++]</span> <span class="o">=</span> <span class="n">c</span><span class="o">;</span>
+<span class="n">array</span><span class="o">[</span><span class="n">position</span><span class="o">++]</span> <span class="o">=</span> <span class="n">d</span><span class="o">;</span>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<span class="c1">//"flipping" our position/limit</span>
+<span class="kt">int</span> <span class="n">limit</span> <span class="o">=</span> <span class="n">position</span><span class="o">;</span>
+<span class="n">position</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
 
-<h3>Authors and Contributors</h3>
+<span class="c1">//printing our values</span>
+<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="o">;</span> <span class="n">i</span><span class="o">&lt;</span><span class="n">limit</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+    <span class="c1">//using a relative "get", position inreases each time</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span> <span class="n">array</span><span class="o">[</span><span class="n">position</span><span class="o">++]</span> <span class="o">);</span>
+<span class="o">}</span>
+</pre></div>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<p>The <code>capacity</code> of a buffer is similar to the length of an array; but as we can see from the above example, the <code>limit</code> of a buffer may not be equal to its capacity if we've only written a limited number of bytes.</p>
 
-<h3>Support or Contact</h3>
+<p>For convenience, you can "chain" calls with get/put/etc. like so:</p>
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-      </section>
+<div class="highlight"><pre><span class="n">buffer</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">a</span><span class="o">).</span><span class="na">put</span><span class="o">(</span><span class="n">b</span><span class="o">).</span><span class="na">put</span><span class="o">(</span><span class="n">c</span><span class="o">).</span><span class="na">put</span><span class="o">(</span><span class="n">d</span><span class="o">);</span>
+</pre></div>
 
+<h3>Practical Usage</h3>
+
+<p>So how does this relate to LWJGL and OpenGL? There are two common ways you'll be using buffers: writing data to GL (i.e. uploading texture data to the GPU), or reading data from GL (i.e. reading texture data from the GPU, or getting a certain value from the driver).</p>
+
+<p>Let's say we are creating a 1x1 blue RGBA texture, our buffer setup would look like this:</p>
+
+<div class="highlight"><pre><span class="kt">int</span> <span class="n">width</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="c1">//1 pixel wide</span>
+<span class="kt">int</span> <span class="n">height</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="c1">//1 pixel high</span>
+<span class="kt">int</span> <span class="n">bpp</span> <span class="o">=</span> <span class="mi">4</span><span class="o">;</span> <span class="c1">//4 bytes per pixel (RGBA)</span>
+
+<span class="c1">//create our buffer</span>
+<span class="n">ByteBuffer</span> <span class="n">buffer</span> <span class="o">=</span> <span class="n">BufferUtils</span><span class="o">.</span><span class="na">createByteBuffer</span><span class="o">(</span><span class="n">width</span> <span class="o">*</span> <span class="n">height</span> <span class="o">*</span> <span class="n">bpp</span><span class="o">);</span>
+
+<span class="c1">//put the Red, Green, Blue, and Alpha bytes</span>
+<span class="n">buffer</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="mh">0x00</span><span class="o">).</span><span class="na">put</span><span class="o">(</span><span class="mh">0x00</span><span class="o">).</span><span class="na">put</span><span class="o">(</span><span class="mi">0</span><span class="n">xFF</span><span class="o">).</span><span class="na">put</span><span class="o">(</span><span class="mi">0</span><span class="n">xFF</span><span class="o">);</span>
+
+<span class="c1">//flip the buffer !!! this needs to be done before it can be read by GL</span>
+<span class="n">buffer</span><span class="o">.</span><span class="na">flip</span><span class="o">();</span>
+
+<span class="c1">//here is an example of sending data to GL... we will talk </span>
+<span class="c1">//more about this method in the Texture section</span>
+<span class="n">glTexImage2D</span><span class="o">(</span><span class="n">GL_TEXTURE_2D</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="n">GL_RGBA</span><span class="o">,</span> 
+             <span class="n">width</span><span class="o">,</span> <span class="n">height</span><span class="o">,</span> <span class="mi">0</span><span class="o">,</span> <span class="n">GL_RGBA</span><span class="o">,</span> 
+             <span class="n">GL_UNSIGNED_BYTE</span><span class="o">,</span> <span class="n">buffer</span><span class="o">);</span>
+</pre></div>
+
+<p>Below is an example of getting data from GL:</p>
+
+<div class="highlight"><pre><span class="n">IntBuffer</span> <span class="n">buffer</span> <span class="o">=</span> <span class="n">BufferUtils</span><span class="o">.</span><span class="na">createIntBuffer</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+
+<span class="c1">//this will call the relative "put" on our buffer</span>
+<span class="n">glGetInteger</span><span class="o">(</span><span class="n">GL_MAX_TEXURE_SIZE</span><span class="o">,</span> <span class="n">buffer</span><span class="o">);</span>
+
+<span class="c1">//before we read back the values, we need to "flip" it</span>
+<span class="n">buffer</span><span class="o">.</span><span class="na">flip</span><span class="o">();</span>
+
+<span class="c1">//now we can get the max size as a Java int</span>
+<span class="kt">int</span> <span class="n">maxSize</span> <span class="o">=</span> <span class="n">buffer</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+</pre></div>
+
+<p>As described <a href="http://www.khronos.org/opengles/documentation/opengles1_0/html/glGetInteger.html">in the docs</a>, <code>GL_MAX_TEXTURE_SIZE</code> will give us one value. Some other GL parameters may return more values, and in that case we would have to create our buffer with a large enough capacity. Where possible, you should try to re-use buffers instead of always creating new ones.</p>
+
+<p>Also note that LWJGL includes convenience methods for glGetInteger, glGenTextures, and various other calls. So the above code would actually be reduced to the following:</p>
+
+<div class="highlight"><pre><span class="kt">int</span> <span class="n">maxSize</span> <span class="o">=</span> <span class="n">glGetInteger</span><span class="o">(</span><span class="n">GL_MAX_TEXTURE_SIZE</span><span class="o">);</span>
+</pre></div>
+        </section>
+
+        <footer>
+          Buffers is maintained by <a href="https://github.com/mattdesl">mattdesl</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+        
+      </div>
     </div>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-    
   </body>
 </html>
