@@ -2,15 +2,15 @@
  * Copyright (c) 2012, Matt DesLauriers All rights reserved.
  *
  *	Redistribution and use in source and binary forms, with or without
- *	modification, are permitted provided that the following conditions are met: 
+ *	modification, are permitted provided that the following conditions are met:
  *
  *	* Redistributions of source code must retain the above copyright notice, this
- *	  list of conditions and the following disclaimer. 
+ *	  list of conditions and the following disclaimer.
  *
  *	* Redistributions in binary
  *	  form must reproduce the above copyright notice, this list of conditions and
  *	  the following disclaimer in the documentation and/or other materials provided
- *	  with the distribution. 
+ *	  with the distribution.
  *
  *	* Neither the name of the Matt DesLauriers nor the names
  *	  of his contributors may be used to endorse or promote products derived from
@@ -51,56 +51,57 @@ import mdesl.graphics.Texture;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
+import org.lwjgl.util.vector.Vector3f;
 
 public class VertexArrayExample {
-	
+
 	public static void main(String[] args) throws LWJGLException {
 		new VertexArrayExample().start();
 	}
-	
+
 	public void start() throws LWJGLException {
 		Display.setTitle("Vertex Array Example");
 		Display.setResizable(true);
 		Display.setDisplayMode(new DisplayMode(800, 600));
 		Display.setVSyncEnabled(true);
 		Display.create();
-		
+
 		create();
-		
+
 		while (!Display.isCloseRequested()) {
 			if (Display.wasResized())
 				resize();
 			render();
-			
+
 			Display.update();
 			Display.sync(60);
 		}
-		
+
 		Display.destroy();
 	}
-	
+
 	Texture tex, tex2;
 	SpriteBatch batch;
-	
+
 	static URL getResource(String ref) {
 		URL url = VertexArrayExample.class.getClassLoader().getResource(ref);
 		if (url==null)
 			throw new RuntimeException("could not find resource: "+ref);
 		return url;
 	}
-	
+
 	protected void resize() {
 		glViewport(0, 0, Display.getWidth(), Display.getHeight());
 		batch.updateProjection();
 	}
-	
+
 	protected void create() {
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glClearColor(0f, 0f, 0f, 0f);
 		glViewport(0, 0, Display.getWidth(), Display.getHeight());
-		
+
 		//Load some textures
 		try {
 			tex = new Texture(getResource("res/tiles.png"), Texture.LINEAR);
@@ -108,23 +109,46 @@ public class VertexArrayExample {
 		} catch (IOException e) {
 			throw new RuntimeException("couldn't decode textures");
 		}
-		
+
 		batch = new SpriteBatch(1000);
 	}
-	
+
+	private static float rotation = 0f;
+	private static final Vector3f axis = new Vector3f(0, 0, 1f);
+	private static final Vector3f translate = new Vector3f(0, 0, 0);
+
 	protected void render() {
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		batch.getViewMatrix().setIdentity();
+
+		float rotationPointX = Display.getWidth()/2;
+		float rotationPointY = Display.getHeight()/2;
+		rotation += 0.011;
+
+		// Translate the view into the mid of the point to rotate about:
+		translate.set( rotationPointX,  rotationPointY, 0);
+		batch.getViewMatrix().translate(translate);
+		// Rotate the view:
+		batch.getViewMatrix().rotate(rotation, axis);
+		// Translate back to look directly at the rotation point, when rendering:
+		translate.set(-rotationPointX, -rotationPointY, 0);
+		batch.getViewMatrix().translate(translate);
+		// Upload the view matrix to the GPU:
+		batch.updateView();
+
+		// Begin rendering:
 		batch.begin();
-		
+
 		batch.draw(tex, 50, 50);
 		batch.drawRegion(tex, 0, 0, 64, 64, 50, 350); //draw a single tile
-		
+
 		batch.setColor(1f, 0f, 0f, 1f); //tint red
 		batch.draw(tex2, 350, 25);
 		batch.setColor(1f, 1f, 1f, 1f); //reset color..
-		
+
 		batch.end();
-		
+
 		//simple debugging...
 		//Display.setTitle("Render calls: "+batch.renderCalls);
 		//batch.renderCalls = 0;
