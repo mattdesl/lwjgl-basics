@@ -92,7 +92,7 @@ public class VertexArrayExample {
 
 	protected void resize() {
 		glViewport(0, 0, Display.getWidth(), Display.getHeight());
-		batch.updateProjection();
+		batch.updateMatrices();
 	}
 
 	protected void create() {
@@ -135,7 +135,7 @@ public class VertexArrayExample {
 		translate.set(-rotationPointX, -rotationPointY, 0);
 		batch.getViewMatrix().translate(translate);
 		// Upload the view matrix to the GPU:
-		batch.updateView();
+		batch.updateMatrices();
 
 		// Begin rendering:
 		batch.begin();

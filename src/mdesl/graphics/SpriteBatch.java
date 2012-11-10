@@ -32,7 +32,6 @@ package mdesl.graphics;
 
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL20.glUniform1i;
-import static org.lwjgl.opengl.GL20.glUniformMatrix4;
 
 import java.nio.FloatBuffer;
 import java.util.Arrays;
@@ -44,7 +43,6 @@ import mdesl.graphics.glutils.VertexAttrib;
 import mdesl.graphics.glutils.VertexData;
 import mdesl.util.MathUtil;
 
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Matrix4f;
 
@@ -55,16 +53,14 @@ import org.lwjgl.util.vector.Matrix4f;
  */
 public class SpriteBatch {
 	public static final String TEXCOORD_0 = "tex0";
-	public static final String PROJECTION_MATRIX = "projMatrix";
-	public static final String VIEW_MATRIX = "viewMatrix";
+	public static final String PROJ_VIEW_MATRIX = "projViewMatrix";
 
 	public static final String ATTR_COLOR = "Color";
 	public static final String ATTR_POSITION = "Position";
 	public static final String ATTR_TEXCOORD = "TexCoord";
 
 	public static final String DEFAULT_VERT_SHADER =
-			"uniform mat4 "+PROJECTION_MATRIX+";\n" +
-			"uniform mat4 "+VIEW_MATRIX+";\n" +
+			"uniform mat4 "+PROJ_VIEW_MATRIX+";\n" +
 			"attribute vec4 "+ATTR_COLOR+";\n" +
 			"attribute vec2 "+ATTR_TEXCOORD+";\n" +
 			"attribute vec2 "+ATTR_POSITION+";\n" +
@@ -73,7 +69,7 @@ public class SpriteBatch {
 			"void main() {\n" +
 			"	vColor = "+ATTR_COLOR+";\n" +
 			"	vTexCoord = "+ATTR_TEXCOORD+";\n" +
-			"	gl_Position = "+PROJECTION_MATRIX+" * "+VIEW_MATRIX+" * vec4("+ATTR_POSITION+".xy, 0, 1);\n" +
+			"	gl_Position = "+PROJ_VIEW_MATRIX+" * vec4("+ATTR_POSITION+".xy, 0, 1);\n" +
 			"}";
 
 	public static final String DEFAULT_FRAG_SHADER =
@@ -96,6 +92,8 @@ public class SpriteBatch {
 	protected FloatBuffer buf16;
 	protected Matrix4f projMatrix;
 	protected Matrix4f viewMatrix;
+	protected Matrix4f projViewMatrix;
+	protected Matrix4f transpositionPool;
 
 	protected Texture texture;
 	protected ShaderProgram program;
@@ -123,9 +121,7 @@ public class SpriteBatch {
 		//max indices before we need to flush the renderer
 		maxIndex = size * 6;
 
-		updateProjection();
-
-		updateView();
+		updateMatrices();
 	}
 
 	public SpriteBatch(int size) {
@@ -148,24 +144,26 @@ public class SpriteBatch {
 	}
 
 	/**
-	 * Call to update the projection matrix with the screen and send the uniform to the current shader.
+	 * Call to multiply the the projection with the view matrix and save
+	 * the result in the uniform mat4 {@value #PROJ_VIEW_MATRIX}.
 	 */
-	public void updateProjection() {
+	public void updateMatrices() {
+		// Create projection matrix:
 		projMatrix = MathUtil.toOrtho2D(projMatrix, 0, 0, Display.getWidth(), Display.getHeight());
+		// Create view Matrix, if not present:
+		if (viewMatrix == null) {
+			viewMatrix = new Matrix4f();
+		}
+		// Multiply the transposed projection matrix with the view matrix:
+		projViewMatrix = Matrix4f.mul(
+				Matrix4f.transpose(projMatrix, transpositionPool),
+				viewMatrix,
+				projViewMatrix);
 
 		program.begin();
 
-		//upload projection matrix
-		int proj = program.getUniformLocation(PROJECTION_MATRIX);
-		if (proj!=-1) { //if the uniform is active
-			//ShaderProgram should probably have this as a convenience method
-			if (buf16==null)
-				buf16 = BufferUtils.createFloatBuffer(16);
-			buf16.clear();
-			projMatrix.store(buf16);
-			buf16.flip();
-			glUniformMatrix4(proj, true, buf16);
-		}
+		// Store the the multiplied matrix in the "projViewMatrix"-uniform:
+		program.storeUniformMat4(PROJ_VIEW_MATRIX, projViewMatrix, false);
 
 		//upload texcoord 0
 		int tex0 = program.getUniformLocation(TEXCOORD_0);
@@ -173,39 +171,6 @@ public class SpriteBatch {
 			glUniform1i(tex0, 0);
 
 		program.end();
-	}
-
-	/**
-	 * Used to upload the View matrix to VRAM, to be useable in the shaders.
-	 */
-	public void updateView() {
-		// In case we haven't got a matrix yet:
-		if (viewMatrix == null) {
-			viewMatrix = new Matrix4f();
-		}
-		// So we can update it's uniforms:
-		program.begin();
-		// Get the uniform:
-		int view = program.getUniformLocation(VIEW_MATRIX);
-		if (view != -1) {
-			// Store the matrix in a buffer:
-			if (buf16 == null) {
-				buf16 = BufferUtils.createFloatBuffer(16);
-			}
-			buf16.clear();
-			viewMatrix.storeTranspose(buf16);
-			buf16.flip();
-			// Upload the matrix:
-			glUniformMatrix4(view, true, buf16);
-		}
-		// (I have only added this since it is in updateProjection() too...)
-		int tex0 = program.getUniformLocation(TEXCOORD_0);
-		if (tex0 != -1) {
-			glUniform1i(tex0, 0);
-		}
-
-		program.end();
-
 	}
 
 	public void begin() {

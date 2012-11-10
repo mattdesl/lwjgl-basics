@@ -2,15 +2,15 @@
  * Copyright (c) 2012, Matt DesLauriers All rights reserved.
  *
  *	Redistribution and use in source and binary forms, with or without
- *	modification, are permitted provided that the following conditions are met: 
+ *	modification, are permitted provided that the following conditions are met:
  *
  *	* Redistributions of source code must retain the above copyright notice, this
- *	  list of conditions and the following disclaimer. 
+ *	  list of conditions and the following disclaimer.
  *
  *	* Redistributions in binary
  *	  form must reproduce the above copyright notice, this list of conditions and
  *	  the following disclaimer in the documentation and/or other materials provided
- *	  with the distribution. 
+ *	  with the distribution.
  *
  *	* Neither the name of the Matt DesLauriers nor the names
  *	  of his contributors may be used to endorse or promote products derived from
@@ -51,22 +51,29 @@ import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20.glLinkProgram;
 import static org.lwjgl.opengl.GL20.glShaderSource;
+import static org.lwjgl.opengl.GL20.glUniformMatrix4;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
+import java.nio.FloatBuffer;
 import java.util.List;
 
+import org.lwjgl.BufferUtils;
+import org.lwjgl.util.vector.Matrix4f;
+
 /**
- * A bare-bones ShaderProgram utility based on ra4king's ArcSynthesis Java ports. 
- * 
- * @author ra4king, modifications by davedes
+ * A bare-bones ShaderProgram utility based on ra4king's ArcSynthesis Java ports.
+ *
+ * @author ra4king, modifications by davedes and matheusdev
  */
 public class ShaderProgram {
+
+	private static final FloatBuffer buf16Pool = BufferUtils.createFloatBuffer(16);
 
 	public final int program;
 	public final int vertex;
 	public final int fragment;
 	protected String log;
-	
+
 	public ShaderProgram(String vertexSource, String fragmentSource) {
 		this(vertexSource, fragmentSource, null);
 	}
@@ -77,43 +84,43 @@ public class ShaderProgram {
 		program = glCreateProgram();
 		glAttachShader(program, vertex);
 		glAttachShader(program, fragment);
-		
+
 		if (attributes != null)
 			for (VertexAttrib a : attributes)
 				glBindAttribLocation(program, a.location, a.name);
-		
+
 		glLinkProgram(program);
-		
+
 		String infoLog = glGetProgramInfoLog(program, glGetProgram(program, GL_INFO_LOG_LENGTH));
-		
+
 		if (glGetProgram(program, GL_LINK_STATUS) == GL_FALSE)
 			throw new RuntimeException(
 					"Failure in linking program. Error log:\n" + infoLog);
-		
+
 		if (infoLog!=null && infoLog.trim().length()!=0)
 			log += infoLog;
-				
+
 		glDetachShader(program, vertex);
 		glDetachShader(program, fragment);
 		glDeleteShader(vertex);
 		glDeleteShader(fragment);
 	}
-		
+
 	private int compileShader(String source, int type) {
 		int shader = glCreateShader(type);
 		glShaderSource(shader, source);
 		glCompileShader(shader);
-		
+
 		String infoLog = glGetShaderInfoLog(shader,
 				glGetShader(shader, GL_INFO_LOG_LENGTH));
 
 		if (glGetShader(shader, GL_COMPILE_STATUS) == GL_FALSE)
 			throw new RuntimeException("Failure in compiling " + getName(type)
 					+ ". Error log:\n" + infoLog);
-		
+
 		if (infoLog!=null && infoLog.trim().length()!=0)
 			log += getName(type) +": "+infoLog + "\n";
-		
+
 		return shader;
 	}
 
@@ -122,7 +129,7 @@ public class ShaderProgram {
 			return "GL_VERTEX_SHADER";
 		if (shaderType == GL_FRAGMENT_SHADER)
 			return "GL_FRAGMENT_SHADER";
-		else 
+		else
 			return "shader";
 	}
 
@@ -133,12 +140,30 @@ public class ShaderProgram {
 	public void end() {
 		glUseProgram(0);
 	}
-	
-	public void destroy() {		
+
+	public void destroy() {
 		glDeleteProgram(program);
 	}
-	
+
 	public int getUniformLocation(String str) {
 		return glGetUniformLocation(program, str);
+	}
+
+	public FloatBuffer getBuf16Pool() {
+		buf16Pool.clear();
+		return buf16Pool;
+	}
+
+	public void storeUniformMat4(String uniform, Matrix4f mat, boolean transposed) {
+		FloatBuffer buffer = getBuf16Pool();
+		mat.store(buffer);
+		buffer.flip();
+
+		int uniformId = getUniformLocation(uniform);
+		if (uniformId != -1) {
+			glUniformMatrix4(uniformId, transposed, buf16Pool);
+		} else {
+			throw new IllegalStateException("glGetUniformLocation for the uniform \"" + uniform + "\" returned -1.");
+		}
 	}
 }
