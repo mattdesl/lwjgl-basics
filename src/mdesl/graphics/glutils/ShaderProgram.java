@@ -44,10 +44,10 @@ import static org.lwjgl.opengl.GL20.glCreateShader;
 import static org.lwjgl.opengl.GL20.glDeleteProgram;
 import static org.lwjgl.opengl.GL20.glDeleteShader;
 import static org.lwjgl.opengl.GL20.glDetachShader;
-import static org.lwjgl.opengl.GL20.glGetProgram;
 import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
-import static org.lwjgl.opengl.GL20.glGetShader;
+import static org.lwjgl.opengl.GL20.glGetProgrami;
 import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
+import static org.lwjgl.opengl.GL20.glGetShaderi;
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20.glLinkProgram;
 import static org.lwjgl.opengl.GL20.glShaderSource;
@@ -91,9 +91,9 @@ public class ShaderProgram {
 
 		glLinkProgram(program);
 
-		String infoLog = glGetProgramInfoLog(program, glGetProgram(program, GL_INFO_LOG_LENGTH));
+		String infoLog = glGetProgramInfoLog(program, glGetProgrami(program, GL_INFO_LOG_LENGTH));
 
-		if (glGetProgram(program, GL_LINK_STATUS) == GL_FALSE)
+		if (glGetProgrami(program, GL_LINK_STATUS) == GL_FALSE)
 			throw new RuntimeException(
 					"Failure in linking program. Error log:\n" + infoLog);
 
@@ -112,9 +112,9 @@ public class ShaderProgram {
 		glCompileShader(shader);
 
 		String infoLog = glGetShaderInfoLog(shader,
-				glGetShader(shader, GL_INFO_LOG_LENGTH));
+				glGetShaderi(shader, GL_INFO_LOG_LENGTH));
 
-		if (glGetShader(shader, GL_COMPILE_STATUS) == GL_FALSE)
+		if (glGetShaderi(shader, GL_COMPILE_STATUS) == GL_FALSE)
 			throw new RuntimeException("Failure in compiling " + getName(type)
 					+ ". Error log:\n" + infoLog);
 
