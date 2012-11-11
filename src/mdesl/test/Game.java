@@ -30,32 +30,6 @@
  */
 package mdesl.test;
 
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_QUADS;
-import static org.lwjgl.opengl.GL11.GL_RGBA;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.glGetInteger;
-import static org.lwjgl.opengl.GL11.glTexCoord2f;
-import static org.lwjgl.opengl.GL11.glTexImage2D;
-import static org.lwjgl.opengl.GL11.glVertex2f;
-import static org.lwjgl.opengl.GL11.glViewport;
-
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-
-import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
@@ -64,37 +38,30 @@ import org.lwjgl.opengl.DisplayMode;
  * A bare-bones implementation of a LWJGL application.
  * @author davedes
  */
-public class Game {
-	
-	// Whether to enable VSync in hardware.
-	public static final boolean VSYNC = true;
-	
-	// Width and height of our window
-	public static final int WIDTH = 800;
-	public static final int HEIGHT = 600;
-	
-	// Whether to use fullscreen mode
-	public static final boolean FULLSCREEN = false;
+public abstract class Game {
 	
 	// Whether our game loop is running
 	protected boolean running = false;
 	
-	public static void main(String[] args) throws LWJGLException {
-		new Game().start();
+	public void setDisplayMode(int width, int height, boolean fullscreen) throws LWJGLException {
+		Display.setDisplayMode(new DisplayMode(width, height));
+		Display.setFullscreen(fullscreen);
 	}
-	
+		
 	// Start our game
 	public void start() throws LWJGLException {
 		// Set up our display 
-		Display.setTitle("Display example");
+		Display.setTitle("Game");
 		Display.setResizable(true);
-		Display.setDisplayMode(new DisplayMode(WIDTH, HEIGHT));
-		Display.setVSyncEnabled(VSYNC);
-		Display.setFullscreen(FULLSCREEN);
+		Display.setVSyncEnabled(true);
+		
 		Display.create();
 		
 		// Create our OpenGL context and initialize any resources
 		create();
+		
+		// Starting size...
+		resize();
 		
 		running = true;
 		
@@ -123,65 +90,14 @@ public class Game {
 	}
 	
 	// Called to setup our game and context
-	protected void create() {
-		// 2D games generally won't require depth testing 
-		glDisable(GL_DEPTH_TEST);
-		
-		// Enable blending
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		
-		// Set clear to transparent black
-		glClearColor(0f, 0f, 0f, 0f);
-		
-		// Set up our viewport to the desired size
-		glViewport(0, 0, WIDTH, HEIGHT);
-		
-		int width = 1; //1 pixel wide
-		int height = 1; //1 pixel high
-		int bpp = 4; //4 bytes per pixel (RGBA)
-
-		IntBuffer buffer = BufferUtils.createIntBuffer(17);
-
-		//this will call the relative "put" on our buffer
-		glGetInteger(GL_MAX_TEXTURE_SIZE, buffer);
-
-		//before we read back the values, we need to "flip" it
-		//buffer.flip();
-		System.out.println(buffer.position()+" "+buffer.capacity()+" "+buffer.limit());
-		
-		//now we can get the max size as a Java int
-		int maxSize = buffer.get(3);
-		System.out.println(maxSize);
-	}
+	protected abstract void create();
 	
 	// Called to render our game
-	protected void render() {
-		// Clear the screen
-		glClear(GL_COLOR_BUFFER_BIT);
-		
-		glEnable(GL_TEXTURE_2D);
-		glBegin(GL_QUADS);
-		glTexCoord2f(0f, 0f);
-		glVertex2f(0f, 0f);
-		glTexCoord2f(1f, 0f);
-		glVertex2f(10f, 0f);
-		glTexCoord2f(1f, 1f);
-		glVertex2f(10f, 10f);
-		glTexCoord2f(0f, 1f);
-		glVertex2f(0f, 10f);
-		
-		glEnd();
-	}
+	protected abstract void render();
 	
 	// Called to resize our game
-	protected void resize() {
-		glViewport(0, 0, Display.getWidth(), Display.getHeight());
-		// ... update our projection matrices here ...
-	}
+	protected abstract void resize();
 	
 	// Called to destroy our game upon exiting
-	protected void dispose() {
-		// ... dispose of any textures, etc ...
-	}
+	protected abstract void dispose();
 }

@@ -52,15 +52,15 @@ import org.lwjgl.util.vector.Matrix4f;
  * @author matheusdev
  */
 public class SpriteBatch {
-	public static final String TEXCOORD_0 = "tex0";
-	public static final String PROJ_VIEW_MATRIX = "projViewMatrix";
+	public static final String U_TEXTURE = "u_texture";
+	public static final String U_PROJ_VIEW = "u_projView";
 
 	public static final String ATTR_COLOR = "Color";
 	public static final String ATTR_POSITION = "Position";
 	public static final String ATTR_TEXCOORD = "TexCoord";
 
 	public static final String DEFAULT_VERT_SHADER =
-			"uniform mat4 "+PROJ_VIEW_MATRIX+";\n" +
+			"uniform mat4 "+U_PROJ_VIEW+";\n" +
 			"attribute vec4 "+ATTR_COLOR+";\n" +
 			"attribute vec2 "+ATTR_TEXCOORD+";\n" +
 			"attribute vec2 "+ATTR_POSITION+";\n" +
@@ -69,15 +69,15 @@ public class SpriteBatch {
 			"void main() {\n" +
 			"	vColor = "+ATTR_COLOR+";\n" +
 			"	vTexCoord = "+ATTR_TEXCOORD+";\n" +
-			"	gl_Position = "+PROJ_VIEW_MATRIX+" * vec4("+ATTR_POSITION+".xy, 0, 1);\n" +
+			"	gl_Position = "+U_PROJ_VIEW+" * vec4("+ATTR_POSITION+".xy, 0, 1);\n" +
 			"}";
 
 	public static final String DEFAULT_FRAG_SHADER =
-			"uniform sampler2D "+TEXCOORD_0+";\n" +
+			"uniform sampler2D "+U_TEXTURE+";\n" +
 			"varying vec4 vColor;\n" +
 			"varying vec2 vTexCoord;\n" +
 			"void main(void) {\n" +
-			"	vec4 texColor = texture2D("+TEXCOORD_0+", vTexCoord);\n" +
+			"	vec4 texColor = texture2D("+U_TEXTURE+", vTexCoord);\n" +
 			"	gl_FragColor = vColor * texColor;\n" +
 			"}";
 
@@ -145,7 +145,7 @@ public class SpriteBatch {
 
 	/**
 	 * Call to multiply the the projection with the view matrix and save
-	 * the result in the uniform mat4 {@value #PROJ_VIEW_MATRIX}.
+	 * the result in the uniform mat4 {@value #U_PROJ_VIEW}.
 	 */
 	public void updateMatrices() {
 		// Create projection matrix:
@@ -163,10 +163,10 @@ public class SpriteBatch {
 		program.begin();
 
 		// Store the the multiplied matrix in the "projViewMatrix"-uniform:
-		program.storeUniformMat4(PROJ_VIEW_MATRIX, projViewMatrix, false);
+		program.storeUniformMat4(U_PROJ_VIEW, projViewMatrix, false);
 
 		//upload texcoord 0
-		int tex0 = program.getUniformLocation(TEXCOORD_0);
+		int tex0 = program.getUniformLocation(U_TEXTURE);
 		if (tex0!=-1)
 			glUniform1i(tex0, 0);
 
