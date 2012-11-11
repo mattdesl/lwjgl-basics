@@ -91,10 +91,9 @@ import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 import org.lwjgl.util.vector.Vector4f;
 
-/** A bare-bones ShaderProgram utility based on ra4king's ArcSynthesis Java
- * ports.
+/** A complete ShaderProgram utility wrapper.
  * 
- * @author davedes and matheusdev */
+ * @author davedes */
 public class ShaderProgram {
 
 	// a simple struct for attrib data; ideally we should find the
