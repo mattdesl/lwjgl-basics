@@ -52,18 +52,16 @@ public class TextureBlendTest extends SimpleGame {
 	SpriteBatch batch;
 	Texture tex0, tex1, mask;
 	
-	public void create() {
+	public void create() throws LWJGLException {
 		super.create();
 		
 		ShaderProgram shader = new ShaderProgram(VERT_SHADER, FRAG_SHADER, SpriteBatch.ATTRIBUTES);
 		//setup our custom uniforms
 		shader.begin();
-		int loc = shader.getUniformLocation(TEX_ALT);
-		if (loc!=-1)
-			glUniform1i(loc, 1);
-		loc = shader.getUniformLocation(TEX_MASK);
-		if (loc!=-1)
-			glUniform1i(loc, 2);
+		
+		shader.setUniformi(TEX_ALT, 1);
+		shader.setUniformi(TEX_MASK, 2);
+		
 		shader.end();
 		
 		System.out.println(VERT_SHADER);
@@ -97,7 +95,7 @@ public class TextureBlendTest extends SimpleGame {
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 	}
 	
-	public void render() {
+	public void render() throws LWJGLException {
 		super.render();
 		
 		batch.begin();

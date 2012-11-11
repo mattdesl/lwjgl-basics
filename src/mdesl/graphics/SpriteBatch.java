@@ -43,14 +43,13 @@ import mdesl.graphics.glutils.VertexAttrib;
 import mdesl.graphics.glutils.VertexData;
 import mdesl.util.MathUtil;
 
+import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector2f;
 
-
-/**
- * @author Matt (mdesl) DesLauriers
- * @author matheusdev
- */
+/** @author Matt (mdesl) DesLauriers
+ * @author matheusdev */
 public class SpriteBatch {
 	public static final String U_TEXTURE = "u_texture";
 	public static final String U_PROJ_VIEW = "u_projView";
@@ -59,32 +58,21 @@ public class SpriteBatch {
 	public static final String ATTR_POSITION = "Position";
 	public static final String ATTR_TEXCOORD = "TexCoord";
 
-	public static final String DEFAULT_VERT_SHADER =
-			"uniform mat4 "+U_PROJ_VIEW+";\n" +
-			"attribute vec4 "+ATTR_COLOR+";\n" +
-			"attribute vec2 "+ATTR_TEXCOORD+";\n" +
-			"attribute vec2 "+ATTR_POSITION+";\n" +
-			"varying vec4 vColor;\n" +
-			"varying vec2 vTexCoord; \n" +
-			"void main() {\n" +
-			"	vColor = "+ATTR_COLOR+";\n" +
-			"	vTexCoord = "+ATTR_TEXCOORD+";\n" +
-			"	gl_Position = "+U_PROJ_VIEW+" * vec4("+ATTR_POSITION+".xy, 0, 1);\n" +
-			"}";
+	public static final String DEFAULT_VERT_SHADER = "uniform mat4 " + U_PROJ_VIEW + ";\n"
+			+ "attribute vec4 " + ATTR_COLOR + ";\n" + "attribute vec2 " + ATTR_TEXCOORD + ";\n"
+			+ "attribute vec2 " + ATTR_POSITION + ";\n" + "varying vec4 vColor;\n"
+			+ "varying vec2 vTexCoord; \n" + "void main() {\n" + "	vColor = " + ATTR_COLOR + ";\n"
+			+ "	vTexCoord = " + ATTR_TEXCOORD + ";\n" + "	gl_Position = " + U_PROJ_VIEW
+			+ " * vec4(" + ATTR_POSITION + ".xy, 0, 1);\n" + "}";
 
-	public static final String DEFAULT_FRAG_SHADER =
-			"uniform sampler2D "+U_TEXTURE+";\n" +
-			"varying vec4 vColor;\n" +
-			"varying vec2 vTexCoord;\n" +
-			"void main(void) {\n" +
-			"	vec4 texColor = texture2D("+U_TEXTURE+", vTexCoord);\n" +
-			"	gl_FragColor = vColor * texColor;\n" +
-			"}";
+	public static final String DEFAULT_FRAG_SHADER = "uniform sampler2D " + U_TEXTURE + ";\n"
+			+ "varying vec4 vColor;\n" + "varying vec2 vTexCoord;\n" + "void main(void) {\n"
+			+ "	vec4 texColor = texture2D(" + U_TEXTURE + ", vTexCoord);\n"
+			+ "	gl_FragColor = vColor * texColor;\n" + "}";
 
-	public static final List<VertexAttrib> ATTRIBUTES = Arrays.asList(
-			new VertexAttrib(0, ATTR_POSITION, 2),
-			new VertexAttrib(1, ATTR_COLOR, 4),
-			new VertexAttrib(2, ATTR_TEXCOORD, 2));
+	public static final List<VertexAttrib> ATTRIBUTES = Arrays.asList(new VertexAttrib(0,
+			ATTR_POSITION, 2), new VertexAttrib(1, ATTR_COLOR, 4), new VertexAttrib(2,
+			ATTR_TEXCOORD, 2));
 
 	static ShaderProgram defaultShader;
 	public static int renderCalls = 0;
@@ -103,32 +91,34 @@ public class SpriteBatch {
 	private int idx;
 	private int maxIndex;
 
-	private float r=1f, g=1f, b=1f, a=1f;
+	private Color color = new Color();
 	private boolean drawing = false;
-
-	static ShaderProgram getDefaultShader() {
-		return defaultShader==null
-				? new ShaderProgram(DEFAULT_VERT_SHADER, DEFAULT_FRAG_SHADER, ATTRIBUTES)
-				: defaultShader;
+	
+	static ShaderProgram getDefaultShader() throws LWJGLException {
+		return defaultShader == null ? new ShaderProgram(DEFAULT_VERT_SHADER, DEFAULT_FRAG_SHADER,
+				ATTRIBUTES) : defaultShader;
 	}
 
 	public SpriteBatch(ShaderProgram program, int size) {
 		this.program = program;
 
-		//later we can do some abstraction to replace this with VBOs...
+		// later we can do some abstraction to replace this with VBOs...
 		this.data = new VertexArray(size * 6, ATTRIBUTES);
 
-		//max indices before we need to flush the renderer
+		// max indices before we need to flush the renderer
 		maxIndex = size * 6;
 
-		updateMatrices();
+		viewMatrix = new Matrix4f();
+
+		// default size
+		resize(Display.getWidth(), Display.getHeight());
 	}
 
-	public SpriteBatch(int size) {
+	public SpriteBatch(int size) throws LWJGLException {
 		this(getDefaultShader(), size);
 	}
 
-	public SpriteBatch() {
+	public SpriteBatch() throws LWJGLException {
 		this(1000);
 	}
 
@@ -136,45 +126,92 @@ public class SpriteBatch {
 		return viewMatrix;
 	}
 
-	public void setColor(float r, float g, float b, float a) {
-		this.r = r;
-		this.g = g;
-		this.b = b;
-		this.a = a;
+	public Matrix4f getProjectionMatrix() {
+		return projMatrix;
+	}
+	
+	/** A convenience method to resize the projection matrix to the given
+	 * dimensions, using y-down ortho 2D. This will invoke a call to
+	 * updateMatrices.
+	 * 
+	 * @param width
+	 * @param height */
+	public void resize(int width, int height) {
+		projMatrix = MathUtil.toOrtho2D(projMatrix, 0, 0, Display.getWidth(), Display.getHeight());
+		updateUniforms();
 	}
 
-	/**
-	 * Call to multiply the the projection with the view matrix and save
-	 * the result in the uniform mat4 {@value #U_PROJ_VIEW}.
-	 */
-	public void updateMatrices() {
-		// Create projection matrix:
-		projMatrix = MathUtil.toOrtho2D(projMatrix, 0, 0, Display.getWidth(), Display.getHeight());
-		// Create view Matrix, if not present:
-		if (viewMatrix == null) {
-			viewMatrix = new Matrix4f();
-		}
-		// Multiply the transposed projection matrix with the view matrix:
-		projViewMatrix = Matrix4f.mul(
-				Matrix4f.transpose(projMatrix, transpositionPool),
-				viewMatrix,
-				projViewMatrix);
+	/** Sets this SpriteBatch's color to the RGBA values of the given color
+	 * object.
+	 * 
+	 * @param color the RGBA values to use */
+	public void setColor(Color color) {
+		setColor(color.r, color.g, color.b, color.a);
+	}
 
+	/** Sets this SpriteBatch's color to the given RGBA values.
+	 * 
+	 * @param r the red value
+	 * @param g the green value
+	 * @param b the blue value
+	 * @param a the alpha value */
+	public void setColor(float r, float g, float b, float a) {
+		color.set(r, g, b, a);
+	}
+
+	/** Call to multiply the the projection with the view matrix and save the
+	 * result in the uniform mat4 {@value #U_PROJ_VIEW}, as well as update the
+	 * {@value #U_TEXTURE} uniform. */
+	public void updateUniforms() {
+		// Multiply the transposed projection matrix with the view matrix:
+		projViewMatrix = Matrix4f.mul(Matrix4f.transpose(projMatrix, transpositionPool),
+				viewMatrix, projViewMatrix);
+
+		// bind the program before sending uniforms
 		program.begin();
 
 		// Store the the multiplied matrix in the "projViewMatrix"-uniform:
-		program.storeUniformMat4(U_PROJ_VIEW, projViewMatrix, false);
+		int projView = program.getUniformLocation(U_PROJ_VIEW);
+		if (projView != -1)
+			program.setUniformMatrix(projView, false, projViewMatrix);
 
-		//upload texcoord 0
+		// upload texcoord 0
 		int tex0 = program.getUniformLocation(U_TEXTURE);
-		if (tex0!=-1)
+		if (tex0 != -1)
 			glUniform1i(tex0, 0);
 
 		program.end();
 	}
 
+	/** An advanced call that allows you to change the shader without uploading
+	 * shader uniforms. This will flush the batch if we are within begin().
+	 * 
+	 * @param program
+	 * @param updateUniforms whether to call updateUniforms after changing the
+	 * programs */
+	public void setShader(ShaderProgram program, boolean updateUniforms) {
+		if (drawing) {
+			flush();
+			this.program.end();
+		}
+		this.program = program;
+		if (updateUniforms)
+			updateUniforms();
+		if (drawing)
+			program.begin();
+	}
+
+	/** Changes the shader and updates it with the current texture and projView
+	 * uniforms. This will flush the batch if we are within begin().
+	 * 
+	 * @param program the new program to use */
+	public void setShader(ShaderProgram program) {
+		setShader(program, true);
+	}
+
 	public void begin() {
-		if (drawing) throw new IllegalStateException("must not be drawing before calling begin()");
+		if (drawing)
+			throw new IllegalStateException("must not be drawing before calling begin()");
 		drawing = true;
 		program.begin();
 		idx = 0;
@@ -183,33 +220,33 @@ public class SpriteBatch {
 	}
 
 	public void end() {
-		if (!drawing) throw new IllegalStateException("must be drawing before calling end()");
+		if (!drawing)
+			throw new IllegalStateException("must be drawing before calling end()");
 		drawing = false;
 		flush();
 		program.end();
 	}
 
 	public void flush() {
-		if (idx>0) {
+		if (idx > 0) {
 			data.flip();
 			render();
-		    idx = 0;
-		    data.clear();
+			idx = 0;
+			data.clear();
 		}
 	}
 
-	public void drawRegion(Texture tex, float srcX, float srcY, float srcWidth,
-			float srcHeight, float dstX, float dstY) {
+	public void drawRegion(Texture tex, float srcX, float srcY, float srcWidth, float srcHeight,
+			float dstX, float dstY) {
 		drawRegion(tex, srcX, srcY, srcWidth, srcHeight, dstX, dstY, srcWidth, srcHeight);
 	}
 
-	public void drawRegion(Texture tex, float srcX, float srcY, float srcWidth,
-			float srcHeight, float dstX, float dstY, float dstWidth,
-			float dstHeight) {
+	public void drawRegion(Texture tex, float srcX, float srcY, float srcWidth, float srcHeight,
+			float dstX, float dstY, float dstWidth, float dstHeight) {
 		float u = srcX / tex.width;
 		float v = srcY / tex.height;
-		float u2 = (srcX+srcWidth) / tex.width;
-		float v2 = (srcY+srcHeight) / tex.height;
+		float u2 = (srcX + srcWidth) / tex.width;
+		float v2 = (srcY + srcHeight) / tex.height;
 		draw(tex, dstX, dstY, dstWidth, dstHeight, u, v, u2, v2);
 	}
 
@@ -221,65 +258,65 @@ public class SpriteBatch {
 		draw(tex, x, y, width, height, 0, 0, 1, 1);
 	}
 
-	public void draw(Texture tex, float x, float y, float width, float height,
-			float u, float v, float u2, float v2) {
+	public void draw(Texture tex, float x, float y, float width, float height, float u, float v,
+			float u2, float v2) {
 		checkFlush(tex);
-
-		//top left, top right, bottom left
+		final float r = color.r;
+		final float g = color.g;
+		final float b = color.b;
+		final float a = color.a;
+		
+		// top left, top right, bottom left
 		vertex(x, y, r, g, b, a, u, v);
-		vertex(x+width, y, r, g, b, a, u2, v);
-		vertex(x, y+height, r, g, b, a, u, v2);
+		vertex(x + width, y, r, g, b, a, u2, v);
+		vertex(x, y + height, r, g, b, a, u, v2);
 
-		//top right, bottom right, bottom left
-		vertex(x+width, y, r, g, b, a, u2, v);
-		vertex(x+width, y+height, r, g, b, a, u2, v2);
-		vertex(x, y+height, r, g, b, a, u, v2);
+		// top right, bottom right, bottom left
+		vertex(x + width, y, r, g, b, a, u2, v);
+		vertex(x + width, y + height, r, g, b, a, u2, v2);
+		vertex(x, y + height, r, g, b, a, u, v2);
 	}
 
-
-	/**
-	 * Renders a texture using custom vertex attributes; e.g. for different vertex colours.
-	 * This will ignore the current batch color.
-	 *
+	/** Renders a texture using custom vertex attributes; e.g. for different
+	 * vertex colours. This will ignore the current batch color and "x/y translation".
+	 * 
 	 * @param tex the texture to use
-	 * @param vertices an array of 6 vertices, each holding 8 attributes (total = 48 elements)
-	 * @param offset the offset from the vertices array to start from
-	 */
+	 * @param vertices an array of 6 vertices, each holding 8 attributes (total
+	 * = 48 elements)
+	 * @param offset the offset from the vertices array to start from */
 	public void draw(Texture tex, float[] vertices, int offset) {
 		checkFlush(tex);
 		data.put(vertices, offset, data.getTotalNumComponents() * 6);
 		idx += 6;
 	}
 
-	VertexData vertex(float x, float y, float r, float g, float b, float a,
-			float u, float v) {
+	VertexData vertex(float x, float y, float r, float g, float b, float a, float u, float v) {
 		data.put(x).put(y).put(r).put(g).put(b).put(a).put(u).put(v);
 		idx++;
 		return data;
 	}
 
 	protected void checkFlush(Texture texture) {
-		if (texture==null || texture==null)
+		if (texture == null)
 			throw new NullPointerException("null texture");
 
-		//we need to bind a different texture/type. this is
-		//for convenience; ideally the user should order
-		//their rendering wisely to minimize texture binds
-		if (texture!=this.texture || idx >= maxIndex) {
-			//apply the last texture
+		// we need to bind a different texture/type. this is
+		// for convenience; ideally the user should order
+		// their rendering wisely to minimize texture binds
+		if (texture != this.texture || idx >= maxIndex) {
+			// apply the last texture
 			flush();
 			this.texture = texture;
 		}
 	}
 
 	private void render() {
-		if (texture!=null)
+		if (texture != null)
 			texture.bind();
 		data.bind();
 		data.draw(GL_TRIANGLES, 0, idx);
 		data.unbind();
 		renderCalls++;
 	}
-
 
 }

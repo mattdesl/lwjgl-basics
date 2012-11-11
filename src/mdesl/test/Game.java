@@ -90,14 +90,14 @@ public abstract class Game {
 	}
 	
 	// Called to setup our game and context
-	protected abstract void create();
+	protected abstract void create() throws LWJGLException;
 	
 	// Called to render our game
-	protected abstract void render();
+	protected abstract void render() throws LWJGLException;
 	
 	// Called to resize our game
-	protected abstract void resize();
+	protected abstract void resize() throws LWJGLException;
 	
 	// Called to destroy our game upon exiting
-	protected abstract void dispose();
+	protected abstract void dispose() throws LWJGLException;
 }

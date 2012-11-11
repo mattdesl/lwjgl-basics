@@ -33,7 +33,7 @@ public class Color {
 	public final static Color ORANGE = new Color(255, 200, 0, 255);
 	/** The fixed colour dark magenta */
 	public final static Color MAGENTA = new Color(255, 0, 255, 255);
-	
+
 	/** The red component [0.0 - 1.0]. */
 	public float r;
 	/** The green component [0.0 - 1.0]. */
@@ -82,6 +82,11 @@ public class Color {
 	 * @param b The blue component of the colour (0 -> 255) */
 	public Color(int r, int g, int b) {
 		this(r, g, b, 255);
+	}
+
+	/** Creates a WHITE color. */
+	public Color() {
+		this(Color.WHITE);
 	}
 
 	/** Copy constructor
@@ -146,6 +151,21 @@ public class Color {
 	 * @return The alpha component (range 0-255) */
 	public int alpha() {
 		return (int) (a * 255);
+	}
+	
+	public void set(Color color) {
+		set(color.r, color.g, color.b, color.a);
+	}
+	
+	public void set(float r, float g, float b, float a) {
+		set(r, g, b);
+		this.a = a;
+	}
+	
+	public void set(float r, float g, float b) {
+		this.r = r;
+		this.g = g;
+		this.b = b;
 	}
 
 	/** Packs the 4 components of this color into a 32-bit int.
