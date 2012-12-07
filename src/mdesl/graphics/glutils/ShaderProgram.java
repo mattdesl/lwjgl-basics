@@ -289,7 +289,7 @@ public class ShaderProgram {
 		if (err != null && err.length() != 0)
 			log += t + " compile log:\n" + err + "\n";
 		if (comp == GL11.GL_FALSE)
-			throw new LWJGLException(log);
+			throw new LWJGLException(log.length()!=0 ? log : "Could not compile "+shaderTypeString(type));
 		return shader;
 	}
 
@@ -331,7 +331,7 @@ public class ShaderProgram {
 		if (log != null)
 			log = log.trim();
 		if (comp == GL11.GL_FALSE)
-			throw new LWJGLException(log);
+			throw new LWJGLException(log.length()!=0 ? log : "Could not link program");
 
 		fetchUniforms();
 		fetchAttributes();

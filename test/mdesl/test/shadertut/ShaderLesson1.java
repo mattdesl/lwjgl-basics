@@ -35,14 +35,25 @@ public class ShaderLesson1 extends SimpleGame {
 		} catch (IOException e) {
 			throw new RuntimeException("couldn't decode texture");
 		}
-
-		// As explained in SpriteBatch docs, we will use the following
-		// attributes:
 		
-		// create a new shader program
-		// ShaderProgram program = new ShaderProgram(VERTEX, FRAGMENT,
-		// SpriteBatch.ATTRIBUTES);
-		batch = new SpriteBatch(1000);
+		//load our shader program and sprite batch
+		try {
+			final String VERTEX = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson1.vert"));
+			final String FRAGMENT = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson1.frag"));
+			
+			System.out.println(SpriteBatch.DEFAULT_VERT_SHADER);
+			System.out.println(SpriteBatch.DEFAULT_FRAG_SHADER);
+			
+			//create our shader program -- be sure to pass SpriteBatch's default attributes!
+			ShaderProgram program = new ShaderProgram(VERTEX, FRAGMENT, SpriteBatch.ATTRIBUTES);
+			
+			//create our sprite batch
+			batch = new SpriteBatch(program, 1000);
+		} catch (Exception e) { 
+			//simple exception handling...
+			e.printStackTrace();
+			System.exit(0);
+		}
 	}
 
 	protected void render() throws LWJGLException {
@@ -51,7 +62,7 @@ public class ShaderLesson1 extends SimpleGame {
 		// Begin rendering:
 		batch.begin();
 
-		// batch.draw(tex, 10, 10);
+		batch.draw(tex, 10, 10);
 
 		batch.end();
 	}

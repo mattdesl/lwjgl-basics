@@ -30,18 +30,6 @@
  */
 package mdesl.test;
 
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
-import static org.lwjgl.opengl.GL11.GL_DEPTH_TEST;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import static org.lwjgl.opengl.GL11.glClear;
-import static org.lwjgl.opengl.GL11.glClearColor;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glViewport;
-
 import java.io.IOException;
 
 import mdesl.graphics.SpriteBatch;
@@ -50,23 +38,17 @@ import mdesl.util.Util;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.util.vector.Vector3f;
 
-public class VertexArrayExample extends SimpleGame {
+public class SpriteBatchExample extends SimpleGame {
 
 	public static void main(String[] args) throws LWJGLException {
-		Game game = new VertexArrayExample();
+		Game game = new SpriteBatchExample();
 		game.setDisplayMode(800, 600, false);
 		game.start();
 	}
 
 	Texture tex, tex2;
 	SpriteBatch batch;
-
-	protected void resize() throws LWJGLException {
-		super.resize();
-		batch.resize(Display.getWidth(), Display.getHeight());
-	}
 
 	protected void create() throws LWJGLException {
 		super.create();
@@ -82,41 +64,13 @@ public class VertexArrayExample extends SimpleGame {
 		batch = new SpriteBatch(1000);
 	}
 
-	private static float rotation = 0f;
-	private static final Vector3f axis = new Vector3f(0, 0, 1f);
-	private static final Vector3f translate = new Vector3f(0, 0, 0);
-
 	protected void render() throws LWJGLException {
-		super.render();
-
-//		batch.getViewMatrix().setIdentity();
-//
-//		float rotationPointX = Display.getWidth()/2;
-//		float rotationPointY = Display.getHeight()/2;
-//		rotation += 0.011;
-//
-//		// Translate the view into the mid of the point to rotate about:
-//		translate.set( rotationPointX,  rotationPointY, 0);
-//		batch.getViewMatrix().translate(translate);
-//		// Rotate the view:
-//		batch.getViewMatrix().rotate(rotation, axis);
-//		// Translate back to look directly at the rotation point, when rendering:
-//		translate.set(-rotationPointX, -rotationPointY, 0);
-//		batch.getViewMatrix().translate(translate);
-//		// Upload the view matrix to the GPU:
-//		batch.updateUniforms();
-
-		
+		super.render();		
 		
 		// Begin rendering:
 		batch.begin();
 
-		//batch.draw(tex, 50, 50);
-		
-		
-		batch.drawRegion(tex, 64, 64, 64, 64, 0, 0); //draw a single tile
-		
-		
+		batch.drawRegion(tex, 64, 64, 64, 64, 0, 0); //draw a single tile		
 		batch.drawRegion(tex, 0, 0, 64, 64, 50, 350); //draw a single tile
 
 		batch.setColor(1f, 0f, 0f, 1f); //tint red
@@ -124,9 +78,11 @@ public class VertexArrayExample extends SimpleGame {
 		batch.setColor(1f, 1f, 1f, 1f); //reset color..
 
 		batch.end();
+	}
+	
 
-		//simple debugging...
-		//Display.setTitle("Render calls: "+batch.renderCalls);
-		//batch.renderCalls = 0;
+	protected void resize() throws LWJGLException {
+		super.resize();
+		batch.resize(Display.getWidth(), Display.getHeight());
 	}
 }

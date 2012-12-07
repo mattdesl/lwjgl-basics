@@ -163,26 +163,39 @@ public class SpriteBatch {
 	 * result in the uniform mat4 {@value #U_PROJ_VIEW}, as well as update the
 	 * {@value #U_TEXTURE} uniform. */
 	public void updateUniforms() {
+		updateUniforms(program);
+	}
+
+	/** Call to multiply the the projection with the view matrix and save the
+	 * result in the uniform mat4 {@value #U_PROJ_VIEW}, as well as update the
+	 * {@value #U_TEXTURE} uniform. */
+	public void updateUniforms(ShaderProgram program) {
 		// Multiply the transposed projection matrix with the view matrix:
 		projViewMatrix = Matrix4f.mul(Matrix4f.transpose(projMatrix, transpositionPool),
 				viewMatrix, projViewMatrix);
 
 		// bind the program before sending uniforms
 		program.use();
-
+		
+		boolean oldStrict = ShaderProgram.isStrictMode();
+		
+		//disable strict mode so we don't run into any problems
+		ShaderProgram.setStrictMode(false);
+		
+		//we can now utilize ShaderProgram's hash map which may be better than glGetUniformLocation
+		
 		// Store the the multiplied matrix in the "projViewMatrix"-uniform:
-		int projView = program.getUniformLocation(U_PROJ_VIEW);
-		if (projView != -1)
-			program.setUniformMatrix(projView, false, projViewMatrix);
+		program.setUniformMatrix(U_PROJ_VIEW, false, projViewMatrix);
 
 		// upload texcoord 0
-		int tex0 = program.getUniformLocation(U_TEXTURE);
-		if (tex0 != -1)
-			glUniform1i(tex0, 0);
+		program.setUniformi(U_TEXTURE, 0);
+		
+		//reset strict mode
+		ShaderProgram.setStrictMode(oldStrict);
 	}
 
 	/** An advanced call that allows you to change the shader without uploading
-	 * shader uniforms. This will flush the batch if we are within begin().
+	 * shader uniforms. This will flush the batch if we are within begin(). 
 	 * 
 	 * @param program
 	 * @param updateUniforms whether to call updateUniforms after changing the
