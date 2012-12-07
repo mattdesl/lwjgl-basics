@@ -96,6 +96,9 @@ import org.lwjgl.util.vector.Vector4f;
  * @author davedes */
 public class ShaderProgram {
 
+	private static FloatBuffer fbuf16;
+	private static IntBuffer ibuf4;
+	
 	// a simple struct for attrib data; ideally we should find the
 	// component count to utilize our VertexAttrib class
 	protected static class Attrib {
@@ -149,11 +152,6 @@ public class ShaderProgram {
 		return strict;
 	}
 
-	/** Unbinds all shader programs. */
-	public static void unbind() {
-		glUseProgram(0);
-	}
-
 	/** The OpenGL handle for this shader program object. */
 	protected int program;
 	/** The log for this program. */
@@ -172,8 +170,6 @@ public class ShaderProgram {
 	/** The OpenGL handle for this program's fragment shader object. */
 	protected int frag;
 
-	private FloatBuffer fbuf16;
-	private IntBuffer ibuf4;
 
 	/** Creates a new shader program with the given vertex and fragment shader
 	 * source code. The given source code is compiled, then the shaders attached
@@ -353,20 +349,19 @@ public class ShaderProgram {
 	 * the active program.
 	 * 
 	 * @throw IllegalStateException if this program is invalid */
-	public void begin() {
+	public void use() {
 		if (!valid())
 			throw new IllegalStateException("trying to enable a program that is not valid");
 		glUseProgram(program);
 	}
 
-	/** Disables shaders (unbind), then detaches and releases the shaders
+	/** Detaches and releases the shaders
 	 * associated with this program. This can be called after linking a program
 	 * in order to free up memory (as the shaders are no longer needed),
 	 * however, since it is not a commonly used feature and thus not well tested
 	 * on all drivers, it should be used with caution. Shaders shouldn't be used
 	 * after being released. */
 	public void releaseShaders() {
-		end();
 		if (vert != 0) {
 			glDetachShader(getID(), vert);
 			glDeleteShader(vert);
@@ -379,25 +374,16 @@ public class ShaderProgram {
 		}
 	}
 
-	/** If this program has not yet been released, this will disable shaders
-	 * (unbind), then releases this program and its shaders. To only release the
+	/** If this program has not yet been released, this will releases 
+	 * this program and its shaders. To only release the
 	 * shaders (not the program itself), call releaseShaders(). Programs will be
 	 * considered "invalid" after being released, and should no longer be used. */
 	public void release() {
 		if (program != 0) {
-			unbind();
 			releaseShaders();
 			glDeleteProgram(program);
 			program = 0;
 		}
-	}
-
-	/** Unbinds all shaders; this is the equivalent of ShaderProgram.unbindAll(),
-	 * and only included for consistency with bind() and the rest of the API
-	 * (i.e. FBO). Users do not need to unbind one shader before binding a new
-	 * one. */
-	public void end() {
-		ShaderProgram.unbind();
 	}
 
 	/** Returns the OpenGL handle for this program's vertex shader.

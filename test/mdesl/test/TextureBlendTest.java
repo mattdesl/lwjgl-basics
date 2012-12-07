@@ -57,13 +57,11 @@ public class TextureBlendTest extends SimpleGame {
 		
 		ShaderProgram shader = new ShaderProgram(VERT_SHADER, FRAG_SHADER, SpriteBatch.ATTRIBUTES);
 		//setup our custom uniforms
-		shader.begin();
+		shader.use();
 		
 		shader.setUniformi(TEX_ALT, 1);
 		shader.setUniformi(TEX_MASK, 2);
-		
-		shader.end();
-		
+				
 		System.out.println(VERT_SHADER);
 		System.out.println();
 		System.out.println(FRAG_SHADER);

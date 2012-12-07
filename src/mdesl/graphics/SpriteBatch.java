@@ -168,7 +168,7 @@ public class SpriteBatch {
 				viewMatrix, projViewMatrix);
 
 		// bind the program before sending uniforms
-		program.begin();
+		program.use();
 
 		// Store the the multiplied matrix in the "projViewMatrix"-uniform:
 		int projView = program.getUniformLocation(U_PROJ_VIEW);
@@ -179,8 +179,6 @@ public class SpriteBatch {
 		int tex0 = program.getUniformLocation(U_TEXTURE);
 		if (tex0 != -1)
 			glUniform1i(tex0, 0);
-
-		program.end();
 	}
 
 	/** An advanced call that allows you to change the shader without uploading
@@ -192,13 +190,11 @@ public class SpriteBatch {
 	public void setShader(ShaderProgram program, boolean updateUniforms) {
 		if (drawing) {
 			flush();
-			this.program.end();
+			this.program.use();
 		}
 		this.program = program;
 		if (updateUniforms)
 			updateUniforms();
-		if (drawing)
-			program.begin();
 	}
 
 	/** Changes the shader and updates it with the current texture and projView
@@ -213,7 +209,7 @@ public class SpriteBatch {
 		if (drawing)
 			throw new IllegalStateException("must not be drawing before calling begin()");
 		drawing = true;
-		program.begin();
+		program.use();
 		idx = 0;
 		renderCalls = 0;
 		texture = null;
@@ -224,7 +220,6 @@ public class SpriteBatch {
 			throw new IllegalStateException("must be drawing before calling end()");
 		drawing = false;
 		flush();
-		program.end();
 	}
 
 	public void flush() {
