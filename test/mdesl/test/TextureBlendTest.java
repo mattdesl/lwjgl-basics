@@ -12,7 +12,6 @@ import java.io.IOException;
 import mdesl.graphics.SpriteBatch;
 import mdesl.graphics.Texture;
 import mdesl.graphics.glutils.ShaderProgram;
-import mdesl.util.Util;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;

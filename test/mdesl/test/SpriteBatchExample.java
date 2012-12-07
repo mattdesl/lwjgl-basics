@@ -34,7 +34,6 @@ import java.io.IOException;
 
 import mdesl.graphics.SpriteBatch;
 import mdesl.graphics.Texture;
-import mdesl.util.Util;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;

@@ -78,7 +78,7 @@ import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.List;
 
-import mdesl.util.Util;
+import mdesl.test.Util;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
@@ -209,8 +209,10 @@ public class ShaderProgram {
 			release();
 			throw e;
 		}
-		if (log != null && log.length() != 0)
-			Util.warn(log);
+		//TODO: for convenience it might be nice to warn non-critical errors in a log
+		//but ideally the user should do that himself
+//		if (log != null && log.length() != 0)
+//			Util.warn(log);
 	}
 
 	/** Creates a new shader program with the given vertex and fragment shader

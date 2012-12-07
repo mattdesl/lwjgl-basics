@@ -7,7 +7,7 @@ import mdesl.graphics.Texture;
 import mdesl.graphics.glutils.ShaderProgram;
 import mdesl.test.Game;
 import mdesl.test.SimpleGame;
-import mdesl.util.Util;
+import mdesl.test.Util;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
