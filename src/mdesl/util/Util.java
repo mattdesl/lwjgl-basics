@@ -118,8 +118,7 @@ public class Util {
         }
         
 	    public InputStream getResourceAsStream(String ref) {
-	        String cpRef = ref.replace('\\', '/');
-	        InputStream in = Util.class.getClassLoader().getResourceAsStream(cpRef);
+	        InputStream in = Util.class.getClassLoader().getResourceAsStream(ref);
 	        if (in==null) { // try file system
 	            try { return new FileInputStream(createFile(ref)); }
 	            catch (IOException e) {}
@@ -128,8 +127,7 @@ public class Util {
 	    }
 	    
 	    public URL getResource(String ref) {
-	        String cpRef = ref.replace('\\', '/');
-	        URL url = Util.class.getClassLoader().getResource(cpRef);
+	        URL url = Util.class.getClassLoader().getResource(ref);
 	        if (url==null) {
 	            try { 
 	                File f = createFile(ref);
