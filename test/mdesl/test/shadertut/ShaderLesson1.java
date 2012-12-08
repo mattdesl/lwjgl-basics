@@ -31,7 +31,7 @@ public class ShaderLesson1 extends SimpleGame {
 
 		// Load our textures
 		try {
-			tex = new Texture(Util.getResource("res/grass.png"), Texture.LINEAR);
+			tex = new Texture(Util.getResource("res/grass.png"), Texture.NEAREST);
 		} catch (IOException e) {
 			throw new RuntimeException("couldn't decode texture");
 		}
@@ -45,7 +45,7 @@ public class ShaderLesson1 extends SimpleGame {
 			ShaderProgram program = new ShaderProgram(VERTEX, FRAGMENT, SpriteBatch.ATTRIBUTES);
 			
 			//create our sprite batch
-			batch = new SpriteBatch(program, 1000);
+			batch = new SpriteBatch(program);
 		} catch (Exception e) { 
 			//simple exception handling...
 			e.printStackTrace();
@@ -59,7 +59,9 @@ public class ShaderLesson1 extends SimpleGame {
 		// Begin rendering:
 		batch.begin();
 
-		batch.draw(tex, 10, 10);
+		//draw some sprites
+		batch.draw(tex, 10, 10);		
+		batch.drawRegion(tex, 0, 0, 32, 32, 100, 350, 32, 32); 
 
 		batch.end();
 	}
