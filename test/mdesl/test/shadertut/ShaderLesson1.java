@@ -41,9 +41,6 @@ public class ShaderLesson1 extends SimpleGame {
 			final String VERTEX = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson1.vert"));
 			final String FRAGMENT = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson1.frag"));
 			
-			System.out.println(SpriteBatch.DEFAULT_VERT_SHADER);
-			System.out.println(SpriteBatch.DEFAULT_FRAG_SHADER);
-			
 			//create our shader program -- be sure to pass SpriteBatch's default attributes!
 			ShaderProgram program = new ShaderProgram(VERTEX, FRAGMENT, SpriteBatch.ATTRIBUTES);
 			

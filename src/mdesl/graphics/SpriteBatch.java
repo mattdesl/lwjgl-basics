@@ -63,7 +63,7 @@ public class SpriteBatch {
 			+ "attribute vec2 " + ATTR_POSITION + ";\n" + "varying vec4 vColor;\n"
 			+ "varying vec2 vTexCoord; \n" + "void main() {\n" + "	vColor = " + ATTR_COLOR + ";\n"
 			+ "	vTexCoord = " + ATTR_TEXCOORD + ";\n" + "	gl_Position = " + U_PROJ_VIEW
-			+ " * vec4(" + ATTR_POSITION + ".xy, 0, 1);\n" + "}";
+			+ " * vec4(" + ATTR_POSITION + ".xy, 0.0, 1.0);\n" + "}";
 
 	public static final String DEFAULT_FRAG_SHADER = "uniform sampler2D " + U_TEXTURE + ";\n"
 			+ "varying vec4 vColor;\n" + "varying vec2 vTexCoord;\n" + "void main(void) {\n"
@@ -97,6 +97,10 @@ public class SpriteBatch {
 	static ShaderProgram getDefaultShader() throws LWJGLException {
 		return defaultShader == null ? new ShaderProgram(DEFAULT_VERT_SHADER, DEFAULT_FRAG_SHADER,
 				ATTRIBUTES) : defaultShader;
+	}
+	
+	public SpriteBatch(ShaderProgram program) {
+		this(program, 1000);
 	}
 
 	public SpriteBatch(ShaderProgram program, int size) {
