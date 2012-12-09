@@ -2,6 +2,7 @@ package mdesl.test.shadertut;
 
 import java.io.IOException;
 
+import mdesl.graphics.Color;
 import mdesl.graphics.SpriteBatch;
 import mdesl.graphics.Texture;
 import mdesl.graphics.glutils.ShaderProgram;
@@ -12,10 +13,10 @@ import mdesl.test.Util;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 
-public class ShaderLesson1 extends SimpleGame {
+public class ShaderLesson3 extends SimpleGame {
 
 	public static void main(String[] args) throws LWJGLException {
-		Game game = new ShaderLesson1();
+		Game game = new ShaderLesson3();
 		game.setDisplayMode(640, 480, false);
 		game.start();
 	}
@@ -29,7 +30,7 @@ public class ShaderLesson1 extends SimpleGame {
 	protected void create() throws LWJGLException {
 		super.create();
 
-		//this will be ignored in this lesson... 
+		//this will be ignored in this lesson...
 		try {
 			tex = new Texture(Util.getResource("res/grass.png"), Texture.NEAREST);
 		} catch (IOException e) {
@@ -38,8 +39,8 @@ public class ShaderLesson1 extends SimpleGame {
 		
 		//load our shader program and sprite batch
 		try {
-			final String VERTEX = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson1.vert"));
-			final String FRAGMENT = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson1.frag"));
+			final String VERTEX = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson2.vert"));
+			final String FRAGMENT = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson2.frag"));
 			
 			//create our shader program -- be sure to pass SpriteBatch's default attributes!
 			ShaderProgram program = new ShaderProgram(VERTEX, FRAGMENT, SpriteBatch.ATTRIBUTES);
@@ -60,14 +61,16 @@ public class ShaderLesson1 extends SimpleGame {
 	protected void render() throws LWJGLException {
 		super.render();
 
-		// start our batch
+		// Begin rendering:
 		batch.begin();
-
-		// draw some sprites... they will all be affected by our shaders
-		batch.draw(tex, 10, 10);
-		batch.draw(tex, 10, 320, 32, 32);
-
-		// end our batch
+		
+		//draw some sprites
+		batch.setColor(Color.BLUE);
+		batch.draw(tex, 10, 10, 32, 32);
+		
+		batch.setColor(Color.RED);
+		batch.draw(tex, 10, 50, 16, 16);
+		
 		batch.end();
 	}
 

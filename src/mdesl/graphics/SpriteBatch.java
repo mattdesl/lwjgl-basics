@@ -66,7 +66,7 @@ public class SpriteBatch {
 			+ " * vec4(" + ATTR_POSITION + ".xy, 0.0, 1.0);\n" + "}";
 
 	public static final String DEFAULT_FRAG_SHADER = "uniform sampler2D " + U_TEXTURE + ";\n"
-			+ "varying vec4 vColor;\n" + "varying vec2 vTexCoord;\n" + "void main(void) {\n"
+			+ "varying vec4 vColor;\n" + "varying vec2 vTexCoord;\n" + "void main() {\n"
 			+ "	vec4 texColor = texture2D(" + U_TEXTURE + ", vTexCoord);\n"
 			+ "	gl_FragColor = vColor * texColor;\n" + "}";
 

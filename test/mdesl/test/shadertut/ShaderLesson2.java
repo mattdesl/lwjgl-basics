@@ -12,10 +12,10 @@ import mdesl.test.Util;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 
-public class ShaderLesson1 extends SimpleGame {
+public class ShaderLesson2 extends SimpleGame {
 
 	public static void main(String[] args) throws LWJGLException {
-		Game game = new ShaderLesson1();
+		Game game = new ShaderLesson2();
 		game.setDisplayMode(640, 480, false);
 		game.start();
 	}
@@ -38,8 +38,8 @@ public class ShaderLesson1 extends SimpleGame {
 		
 		//load our shader program and sprite batch
 		try {
-			final String VERTEX = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson1.vert"));
-			final String FRAGMENT = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson1.frag"));
+			final String VERTEX = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson2.vert"));
+			final String FRAGMENT = Util.readFile(Util.getResourceAsStream("res/shadertut/lesson2.frag"));
 			
 			//create our shader program -- be sure to pass SpriteBatch's default attributes!
 			ShaderProgram program = new ShaderProgram(VERTEX, FRAGMENT, SpriteBatch.ATTRIBUTES);

@@ -1,19 +1,10 @@
-//combined projection and view matrix
-uniform mat4 u_projView;
-
-// -- "in" attributes
-
+//incoming Position attribute from our SpriteBatch
 attribute vec2 Position;
-attribute vec2 TexCoord;
-attribute vec4 Color;
 
-// -- "out" varyings
-
-varying vec4 vColor;
-varying vec2 vTexCoord;
+//the transformation matrix of our SpriteBatch
+uniform mat4 u_projView;
  
 void main() {
-	vColor = Color;
-	vTexCoord = TexCoord;
-	gl_Position = u_projView * vec4(Position.xy, 0.0, 1.0);
+	//transform our 2D screen space position into 3D world space
+	gl_Position = u_projView * vec4(Position, 0.0, 1.0);
 }
