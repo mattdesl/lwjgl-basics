@@ -2,7 +2,7 @@
 
 Renders the scene as a tangent-space normal map pass.
 
-![Image](http://i.imgur.com/MmIv5.png)
+![Image](http://i.imgur.com/dFRsM.png)
 
 #Set Up
 
@@ -14,8 +14,8 @@ Renders the scene as a tangent-space normal map pass.
 
 ## Credits
 
-Idea from Roy Schulz:
+Idea from Roy Schulz:  
 http://download.blender.org/documentation/bc2004/Roy_Schulz/normal.html
 
-Project by Matt DesLauriers (davedes). More details to come in a later article:
+Project by Matt DesLauriers (davedes). More details to come in a later article:  
 https://github.com/mattdesl/lwjgl-basics/wiki
