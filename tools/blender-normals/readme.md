@@ -8,9 +8,9 @@ Renders the scene as a tangent-space normal map pass.
 
 - If you're using a different coordinate system, adjust the colors and positions of your hemi lights as necessary.
 - Use the "WhiteNormalMaterial" on your objects to ensure proper illumination.
-- In Scene > Color Management, use "None" as the Display Device and "Raw" for Color Space. This should already be set.
 - Ensure your objects are centered correctly, for e.g. xyz=(0, 0, 0).
 - Use ortho projection (`Numpad 5`) and front (`Numpad 1`), then `Ctrl + Alt + Numpad 0` to set the camera to that view.
+- In order to render correctly, the template uses `None` as the Display Device and `Raw` for Color Space (in `Scene > Color Management`).
 
 ## Credits
 
