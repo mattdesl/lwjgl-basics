@@ -32,10 +32,11 @@ public class ShaderLesson3 extends SimpleGame {
 	protected void create() throws LWJGLException {
 		super.create();
 		
-		//our small demo doesn't support resizing the display larger than the scene texture...
+		//our small demo will use a fixed-size display
 		Display.setResizable(false);
 
-		//this will be ignored in this lesson...
+		//In later lessons, we'll learn about "post-processing" an entire scene using an FBO. 
+		//For now we will apply the concepts to individual textures.
 		try {
 			tex = new Texture(Util.getResource("res/scene.png"), Texture.NEAREST);
 		} catch (IOException e) {
@@ -68,9 +69,7 @@ public class ShaderLesson3 extends SimpleGame {
 		
 		batch.begin();
 		
-		//Instead of a uniform, we could have also used texcoords [0.0 - 1.0]. 
-		//However, this only works if the texture is a power-of-two size...
-		//which isn't going to work with screen sizes.
+		//draw the texture at top left
 		batch.draw(tex, 0, 0);
 		
 		batch.end();
@@ -83,7 +82,7 @@ public class ShaderLesson3 extends SimpleGame {
 		// resize our batch with the new screen size
 		batch.resize(Display.getWidth(), Display.getHeight());
 		
-		//whenever our screen resizes, we need to update our uniform
+		// whenever our screen resizes, we need to update our uniform
 		program.use();
 		program.setUniformf("resolution", Display.getWidth(), Display.getHeight());
 	}
