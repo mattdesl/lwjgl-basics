@@ -38,3 +38,5 @@ local.properties
 
 # PDT-specific
 .buildpath
+/native
+/lib
