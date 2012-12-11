@@ -1,3 +1,6 @@
+native/*
+lib/*
+
 # Java specific
 *.class
 
