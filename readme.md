@@ -1,4 +1,4 @@
-*lwjgl-basics* is a minimal shader-based library for 2D sprite games. It provides essential utilities for handling textures, shaders, and sprite rendering.
+lwjgl-basics is a minimal shader-based library for 2D sprite games. It provides essential utilities for handling textures, shaders, and sprite rendering.
 
 For a large game project, a platform like [LibGDX](http://libgdx.badlogicgames.com/) may be more suitable.
 
