@@ -58,4 +58,6 @@ public class Pixmap {
             pixels.flip();
             return this;
     }
+    
+    // TODO -- this class is a WIP
 }
