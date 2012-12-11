@@ -4,9 +4,9 @@ For a large game project, a platform like [LibGDX](http://libgdx.badlogicgames.c
 
 The [source code](https://github.com/mattdesl/lwjgl-basics) is hosted on GitHub.
 
-### Documentation
+### OpenGL & Shader Tutorials
 
-See the Wiki for documentation, as well as various snippets and tutorials for OpenGL and LWJGL:  
+The Wiki also hosts various OpenGL and GLSL tutorials:  
 https://github.com/mattdesl/lwjgl-basics/wiki
 
 ### Credits
