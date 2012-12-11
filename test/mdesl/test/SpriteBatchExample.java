@@ -32,6 +32,7 @@ package mdesl.test;
 
 import java.io.IOException;
 
+import mdesl.graphics.Color;
 import mdesl.graphics.SpriteBatch;
 import mdesl.graphics.Texture;
 
@@ -42,7 +43,7 @@ public class SpriteBatchExample extends SimpleGame {
 
 	public static void main(String[] args) throws LWJGLException {
 		Game game = new SpriteBatchExample();
-		game.setDisplayMode(800, 600, false);
+		game.setDisplayMode(640, 480, false);
 		game.start();
 	}
 
@@ -54,28 +55,36 @@ public class SpriteBatchExample extends SimpleGame {
 
 		//Load some textures
 		try {
-			tex = new Texture(Util.getResource("res/tiles.png"), Texture.LINEAR);
+			tex = new Texture(Util.getResource("res/tiles.png"), Texture.NEAREST);
 			tex2 = new Texture(Util.getResource("res/font0.png"));
 		} catch (IOException e) {
 			throw new RuntimeException("couldn't decode textures");
 		}
-
-		batch = new SpriteBatch(1000);
+		
+		//create our sprite batch
+		batch = new SpriteBatch();
 	}
 
 	protected void render() throws LWJGLException {
 		super.render();		
 		
-		// Begin rendering:
+		//start the sprite batch
 		batch.begin();
 
-		batch.drawRegion(tex, 64, 64, 64, 64, 0, 0); //draw a single tile		
-		batch.drawRegion(tex, 0, 0, 64, 64, 50, 350); //draw a single tile
+		//draw some tiles from our sprite sheet
+		batch.drawRegion(tex, 64, 64, 64, 64, 	//source X,Y,WIDTH,HEIGHT
+							  0, 0);			//destination X,Y (uses source size)
+		batch.drawRegion(tex, 0, 0, 64, 64,		//source X,Y,WIDTH,HEIGHT
+							  50, 70, 128, 128);//destination X,Y,WIDTH,HEIGHT
 
-		batch.setColor(1f, 0f, 0f, 1f); //tint red
-		batch.draw(tex2, 350, 25);
-		batch.setColor(1f, 1f, 1f, 1f); //reset color..
+		//tint batch red
+		batch.setColor(Color.RED); 
+		batch.draw(tex2, 200, 155);
+		
+		//reset color
+		batch.setColor(Color.WHITE);
 
+		//finish the sprite batch and push the tiles to the GPU
 		batch.end();
 	}
 	
