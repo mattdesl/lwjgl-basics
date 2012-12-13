@@ -30,25 +30,29 @@
  */
 package mdesl.test;
 
+import static org.lwjgl.opengl.GL11.glClearColor;
+
 import java.io.IOException;
 
 import mdesl.graphics.Color;
 import mdesl.graphics.SpriteBatch;
-import mdesl.graphics.text.BitmapFont;
+import mdesl.graphics.Texture;
+import mdesl.graphics.TextureRegion;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.opengl.Display;
 
-public class FontExample extends SimpleGame {
+public class SpriteBatchTest extends SimpleGame {
 
 	public static void main(String[] args) throws LWJGLException {
-		Game game = new FontExample();
+		Game game = new SpriteBatchTest();
 		game.setDisplayMode(640, 480, false);
 		game.start();
 	}
 
-	BitmapFont font;
+	Texture tex, tex2;
+	TextureRegion tile;
 	SpriteBatch batch;
 
 	protected void create() throws LWJGLException {
@@ -56,13 +60,16 @@ public class FontExample extends SimpleGame {
 
 		//Load some textures
 		try {
-			font = new BitmapFont(Util.getResource("res/ptsans.fnt"), Util.getResource("res/ptsans_00.png"));
+			tex = new Texture(Util.getResource("res/tiles.png"), Texture.NEAREST);
+			tex2 = new Texture(Util.getResource("res/ptsans_00.png"));
+			tile = new TextureRegion(tex, 128, 64, 64, 64);
 		} catch (IOException e) {
 			// ... do something here ...
-			Sys.alert("Error", "Could not decode font!");
+			Sys.alert("Error", "Could not decode images!");
 			e.printStackTrace();
 			System.exit(0);
 		}
+		glClearColor(0.5f, .5f, .5f, 1f);
 		//create our sprite batch
 		batch = new SpriteBatch();
 	}
@@ -72,14 +79,24 @@ public class FontExample extends SimpleGame {
 		
 		//start the sprite batch
 		batch.begin();
+
+		//draw a tile from our sprite sheet
+		batch.draw(tile, 10, 10);
 		
+		batch.draw(tile, 10, 100, 128, 128); //we can stretch it with a new width/height
+		
+		//we can also draw a region of a Texture on the fly like so:
+		batch.drawRegion(tex, 0, 0, 32, 32, 	  //srcX, srcY, srcWidth, srcHeight
+							   10, 250, 32, 32);  //dstX, dstY, dstWidth, dstHeight
+		
+		//tint batch red
+		batch.setColor(Color.RED); 
+		batch.draw(tex2, 200, 155);
+		
+		//reset color
 		batch.setColor(Color.WHITE);
-		font.drawText(batch, "The quick brown fox jumps over the lazy dog!", 50, 50);
-		
-		//testing some unicode values
-		batch.setColor(Color.GRAY);
-		font.drawText(batch, "\u2122\u00e2\u00C9\u0110\u2082\u2264", 50, font.getLineHeight() + 50);
-		
+
+		//finish the sprite batch and push the tiles to the GPU
 		batch.end();
 	}
 	
