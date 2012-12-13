@@ -74,11 +74,11 @@ public class FontTest extends SimpleGame {
 		batch.begin();
 		
 		batch.setColor(Color.WHITE);
-		font.drawText(batch, "The quick brown fox jumps over the lazy dog!", 50, 50);
+		font.drawText(batch, "The quick brown fox jumps over the lazy dog!", 10, 10);
 		
 		//testing some unicode values
 		batch.setColor(Color.GRAY);
-		font.drawText(batch, "\u2122\u00e2\u00C9\u0110\u2082\u2264", 50, font.getLineHeight() + 50);
+		font.drawText(batch, "\u2122\u00e2\u00C9\u0110\u2082\u2264", 10, font.getLineHeight() + 10);
 		
 		batch.end();
 	}
