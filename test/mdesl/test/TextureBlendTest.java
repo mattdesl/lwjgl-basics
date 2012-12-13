@@ -79,6 +79,9 @@ public class TextureBlendTest extends SimpleGame {
 			System.exit(0);
 		}
 		
+		System.out.println(VERT_SHADER);
+		System.out.println(FRAG_SHADER);
+		
 		//in this example our texture1 won't change, so we can bind it once and forget about it
 		glActiveTexture(GL_TEXTURE2);
 		mask.bind();

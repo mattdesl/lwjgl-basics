@@ -44,11 +44,13 @@ import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.GL_UNPACK_ALIGNMENT;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
 import static org.lwjgl.opengl.GL11.glBindTexture;
+import static org.lwjgl.opengl.GL11.glDeleteTextures;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glPixelStorei;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
+import static org.lwjgl.opengl.GL11.glTexSubImage2D;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 
 import java.io.IOException;
@@ -60,31 +62,76 @@ import org.lwjgl.BufferUtils;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 
-public class Texture {
-	static int bound = 0;
+/** This is a minimal implementation of an OpenGL texture loader. A more complete
+ * implementation would support multiple filetypes (JPEG, BMP, TGA, etc), allow
+ * for parameters such as width/height to be changed (by uploading new texture
+ * data), allow for different internal formats, async loading, different targets
+ * (i.e. for GL_TEXTURE_3D or array textures), mipmaps, compression, etc.
+ * 
+ * @author davedes */
+public class Texture implements ITexture {
 
-	public final int target = GL_TEXTURE_2D;
-	public final int id;
-	public final int width;
-	public final int height;
+	protected int target = GL_TEXTURE_2D;
+	
+	protected int id;
+	protected int width;
+	protected int height;
 
+	// Some filters, included here for convenience
 	public static final int LINEAR = GL_LINEAR;
 	public static final int NEAREST = GL_NEAREST;
-
+	
+	// Some wrap modes, included here for convenience
 	public static final int CLAMP = GL_CLAMP;
 	public static final int CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE;
 	public static final int REPEAT = GL_REPEAT;
+	
+	/** Creates an empty OpenGL texture with the given width and height, where
+	 * each pixel is transparent black (0, 0, 0, 0) and the wrap mode is
+	 * CLAMP_TO_EDGE and the filter is NEAREST.
+	 * 
+	 * @param width the width of the texture
+	 * @param height the height of the texture */
+	public Texture(int width, int height) {
+		this(width, height, NEAREST);
+	}
 
-	public static void clearLastBind() {
-		bound = 0;
+	/** Creates an empty OpenGL texture with the given width and height, where
+	 * each pixel is transparent black (0, 0, 0, 0) and the wrap mode is
+	 * CLAMP_TO_EDGE.
+	 * 
+	 * @param width the width of the texture
+	 * @param height the height of the texture
+	 * @param filter the filter to use */
+	public Texture(int width, int height, int filter) {
+		this(width, height, filter, CLAMP_TO_EDGE);
+	}
+
+	/** Creates an empty OpenGL texture with the given width and height, where
+	 * each pixel is transparent black (0, 0, 0, 0).
+	 * 
+	 * @param width the width of the texture
+	 * @param height the height of the texture
+	 * @param filter the filter to use
+	 * @param wrap the wrap mode to use */
+	public Texture(int width, int height, int filter, int wrap) {
+		glEnable(target);
+		id = glGenTextures();
+		this.width = width;
+		this.height = height;
+		bind();
+		setFilter(filter);
+		setWrap(wrap);
+		ByteBuffer buf = BufferUtils.createByteBuffer(width * height * 4);
+		upload(GL_RGBA, buf);
 	}
 
 	public Texture(URL pngRef) throws IOException {
-		this(pngRef, GL_NEAREST);
+		this(pngRef, NEAREST);
 	}
 
 	public Texture(URL pngRef, int filter) throws IOException {
-		this(pngRef, filter, GL_CLAMP_TO_EDGE);
+		this(pngRef, filter, CLAMP_TO_EDGE);
 	}
 
 	public Texture(URL pngRef, int filter, int wrap) throws IOException {
@@ -92,36 +139,127 @@ public class Texture {
 		try {
 			input = pngRef.openStream();
 			PNGDecoder dec = new PNGDecoder(input);
-
+			
 			width = dec.getWidth();
 			height = dec.getHeight();
 			ByteBuffer buf = BufferUtils.createByteBuffer(4 * width * height);
 			dec.decode(buf, width * 4, PNGDecoder.Format.RGBA);
 			buf.flip();
-
+			
 			glEnable(target);
 			id = glGenTextures();
 
 			bind();
-
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
-			glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filter);
-			glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filter);
-			glTexParameteri(target, GL_TEXTURE_WRAP_S, wrap);
-			glTexParameteri(target, GL_TEXTURE_WRAP_T, wrap);
-
-			glTexImage2D(target, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+			setFilter(filter);
+			setWrap(wrap);
+			upload(GL_RGBA, buf);
 		} finally {
 			if (input != null) {
-				try { input.close(); } catch (IOException e) { }
+				try {
+					input.close();					
+				} catch (IOException e) {
+				}
 			}
 		}
 	}
+	
+	public int getID() {
+		return id;
+	}
+
+	protected void setUnpackAlignment() {
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	}
+
+	/** Uploads image data with the dimensions of this Texture.
+	 * 
+	 * @param dataFormat the format, e.g. GL_RGBA
+	 * @param data the byte data */
+	public void upload(int dataFormat, ByteBuffer data) {
+		bind();
+		setUnpackAlignment();
+		glTexImage2D(target, 0, GL_RGBA, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
+	}
+
+	/** Uploads a sub-image within this texture.
+	 * 
+	 * @param x the destination x offset
+	 * @param y the destination y offset, with lower-left origin
+	 * @param width the width of the sub image data
+	 * @param height the height of the sub image data
+	 * @param dataFormat the format of the sub image data, e.g. GL_RGBA
+	 * @param data the sub image data */
+	public void upload(int x, int y, int width, int height, int dataFormat, ByteBuffer data) {
+		bind();
+		setUnpackAlignment();
+		glTexSubImage2D(target, 0, x, y, width, height, dataFormat, GL_UNSIGNED_BYTE, data);
+	}
+
+	public void setFilter(int filter) {
+		bind();
+		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filter);
+		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filter);
+	}
+
+	public void setWrap(int wrap) {
+		bind();
+		glTexParameteri(target, GL_TEXTURE_WRAP_S, wrap);
+		glTexParameteri(target, GL_TEXTURE_WRAP_T, wrap);
+	}
 
 	public void bind() {
-		if (id != bound)
-			glBindTexture(target, id);
+		if (!valid())
+			throw new IllegalStateException("trying to bind a texture that was disposed");
+		glBindTexture(target, id);
+	}
+	
+	public void dispose() {
+		if (valid()) {
+			glDeleteTextures(id);
+			id = 0;
+		}
+	}
+	
+	/**
+	 * Returns true if this texture is valid, aka it has not been disposed.
+	 * @return true if id!=0
+	 */
+	public boolean valid() {
+		return id!=0;
+	}
+
+	public float getWidth() {
+		return width;
+	}
+	
+	public float getHeight() {
+		return height;
+	}
+	
+	/** Returns this object; used for abstraction with SpriteBatch.
+	 * @return this texture object */
+	public Texture getTexture() {
+		return this;
+	}
+
+	@Override
+	public float getU() {
+		return 0f;
+	}
+
+	@Override
+	public float getV() {
+		return 0f;
+	}
+
+	@Override
+	public float getU2() {
+		return 1f;
+	}
+
+	@Override
+	public float getV2() {
+		return 1f;
 	}
 }

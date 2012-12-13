@@ -255,22 +255,22 @@ public class SpriteBatch {
 
 	public void drawRegion(Texture tex, float srcX, float srcY, float srcWidth, float srcHeight,
 			float dstX, float dstY, float dstWidth, float dstHeight) {
-		float u = srcX / tex.width;
-		float v = srcY / tex.height;
-		float u2 = (srcX + srcWidth) / tex.width;
-		float v2 = (srcY + srcHeight) / tex.height;
+		float u = srcX / tex.getWidth();
+		float v = srcY / tex.getHeight();
+		float u2 = (srcX + srcWidth) / tex.getWidth();
+		float v2 = (srcY + srcHeight) / tex.getHeight();
 		draw(tex, dstX, dstY, dstWidth, dstHeight, u, v, u2, v2);
 	}
 
-	public void draw(Texture tex, float x, float y) {
-		draw(tex, x, y, tex.width, tex.height);
+	public void draw(ITexture tex, float x, float y) {
+		draw(tex, x, y, tex.getWidth(), tex.getHeight());
+	}
+	
+	public void draw(ITexture tex, float x, float y, float width, float height) {
+		draw(tex, x, y, width, height, tex.getU(), tex.getV(), tex.getU2(), tex.getV2());
 	}
 
-	public void draw(Texture tex, float x, float y, float width, float height) {
-		draw(tex, x, y, width, height, 0, 0, 1, 1);
-	}
-
-	public void draw(Texture tex, float x, float y, float width, float height, float u, float v,
+	public void draw(ITexture tex, float x, float y, float width, float height, float u, float v,
 			float u2, float v2) {
 		checkFlush(tex);
 		final float r = color.r;
@@ -290,13 +290,14 @@ public class SpriteBatch {
 	}
 
 	/** Renders a texture using custom vertex attributes; e.g. for different
-	 * vertex colours. This will ignore the current batch color and "x/y translation".
+	 * vertex colours. This will ignore the current batch color and "x/y translation", 
+	 * as well as the U/V coordinates of the given ITexture.
 	 * 
 	 * @param tex the texture to use
 	 * @param vertices an array of 6 vertices, each holding 8 attributes (total
 	 * = 48 elements)
 	 * @param offset the offset from the vertices array to start from */
-	public void draw(Texture tex, float[] vertices, int offset) {
+	public void draw(ITexture tex, float[] vertices, int offset) {
 		checkFlush(tex);
 		data.put(vertices, offset, data.getTotalNumComponents() * 6);
 		idx += 6;
@@ -308,17 +309,17 @@ public class SpriteBatch {
 		return data;
 	}
 
-	protected void checkFlush(Texture texture) {
-		if (texture == null)
+	protected void checkFlush(ITexture sprite) {
+		if (sprite == null || sprite.getTexture()==null)
 			throw new NullPointerException("null texture");
-
+		
 		// we need to bind a different texture/type. this is
 		// for convenience; ideally the user should order
 		// their rendering wisely to minimize texture binds
-		if (texture != this.texture || idx >= maxIndex) {
+		if (sprite.getTexture() != this.texture || idx >= maxIndex) {
 			// apply the last texture
 			flush();
-			this.texture = texture;
+			this.texture = sprite.getTexture();
 		}
 	}
 
