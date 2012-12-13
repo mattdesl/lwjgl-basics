@@ -52,8 +52,6 @@ import mdesl.graphics.TextureRegion;
  */
 public class BitmapFont {
 	
-	public static final char UNKNOWN_CHAR = '?';
-	
 	//TODO: fix up baseLine, ascent, descent, etc.
 	int lineHeight;
 	int baseLine;
@@ -122,7 +120,7 @@ public class BitmapFont {
 			char c = text.charAt(i);
 			//TODO: make unsupported glyphs a bit cleaner...
 			if (c > glyphs.length || c < 0)
-				c = UNKNOWN_CHAR;
+				continue;
 			Glyph g = glyphs[c];
 			if (g==null)
 				continue;
