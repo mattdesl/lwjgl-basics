@@ -59,6 +59,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GLContext;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
 
@@ -71,11 +72,21 @@ import de.matthiasmann.twl.utils.PNGDecoder;
  * @author davedes */
 public class Texture implements ITexture {
 
-	protected int target = GL_TEXTURE_2D;
-	
 	protected int id;
 	protected int width;
 	protected int height;
+	
+	public static int toPowerOfTwo(int n) {
+        return 1 << (32 - Integer.numberOfLeadingZeros(n-1));
+    }
+    
+    public static boolean isPowerOfTwo(int n) {
+        return (n & -n) == n;
+    }
+    
+    public static boolean isNPOTSupported() {
+        return GLContext.getCapabilities().GL_ARB_texture_non_power_of_two;
+    }
 
 	// Some filters, included here for convenience
 	public static final int LINEAR = GL_LINEAR;
@@ -86,6 +97,13 @@ public class Texture implements ITexture {
 	public static final int CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE;
 	public static final int REPEAT = GL_REPEAT;
 	
+	public static final int DEFAULT_FILTER = NEAREST;
+	public static final int DEFAULT_WRAP = REPEAT;
+	
+	protected Texture() {
+		//does nothing... for subclasses
+	}
+	
 	/** Creates an empty OpenGL texture with the given width and height, where
 	 * each pixel is transparent black (0, 0, 0, 0) and the wrap mode is
 	 * CLAMP_TO_EDGE and the filter is NEAREST.
@@ -93,7 +111,7 @@ public class Texture implements ITexture {
 	 * @param width the width of the texture
 	 * @param height the height of the texture */
 	public Texture(int width, int height) {
-		this(width, height, NEAREST);
+		this(width, height, DEFAULT_FILTER);
 	}
 
 	/** Creates an empty OpenGL texture with the given width and height, where
@@ -104,7 +122,7 @@ public class Texture implements ITexture {
 	 * @param height the height of the texture
 	 * @param filter the filter to use */
 	public Texture(int width, int height, int filter) {
-		this(width, height, filter, CLAMP_TO_EDGE);
+		this(width, height, filter, DEFAULT_WRAP);
 	}
 
 	/** Creates an empty OpenGL texture with the given width and height, where
@@ -115,7 +133,7 @@ public class Texture implements ITexture {
 	 * @param filter the filter to use
 	 * @param wrap the wrap mode to use */
 	public Texture(int width, int height, int filter, int wrap) {
-		glEnable(target);
+		glEnable(getTarget());
 		id = glGenTextures();
 		this.width = width;
 		this.height = height;
@@ -127,14 +145,15 @@ public class Texture implements ITexture {
 	}
 
 	public Texture(URL pngRef) throws IOException {
-		this(pngRef, NEAREST);
+		this(pngRef, DEFAULT_FILTER);
 	}
 
 	public Texture(URL pngRef, int filter) throws IOException {
-		this(pngRef, filter, CLAMP_TO_EDGE);
+		this(pngRef, filter, DEFAULT_WRAP);
 	}
 
 	public Texture(URL pngRef, int filter, int wrap) throws IOException {
+		//TODO: npot check
 		InputStream input = null;
 		try {
 			input = pngRef.openStream();
@@ -146,7 +165,7 @@ public class Texture implements ITexture {
 			dec.decode(buf, width * 4, PNGDecoder.Format.RGBA);
 			buf.flip();
 			
-			glEnable(target);
+			glEnable(getTarget());
 			id = glGenTextures();
 
 			bind();
@@ -161,6 +180,10 @@ public class Texture implements ITexture {
 				}
 			}
 		}
+	}
+	
+	public int getTarget() {
+		return GL_TEXTURE_2D;
 	}
 	
 	public int getID() {
@@ -179,7 +202,7 @@ public class Texture implements ITexture {
 	public void upload(int dataFormat, ByteBuffer data) {
 		bind();
 		setUnpackAlignment();
-		glTexImage2D(target, 0, GL_RGBA, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(getTarget(), 0, GL_RGBA, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
 	}
 
 	/** Uploads a sub-image within this texture.
@@ -193,25 +216,25 @@ public class Texture implements ITexture {
 	public void upload(int x, int y, int width, int height, int dataFormat, ByteBuffer data) {
 		bind();
 		setUnpackAlignment();
-		glTexSubImage2D(target, 0, x, y, width, height, dataFormat, GL_UNSIGNED_BYTE, data);
+		glTexSubImage2D(getTarget(), 0, x, y, width, height, dataFormat, GL_UNSIGNED_BYTE, data);
 	}
 
 	public void setFilter(int filter) {
 		bind();
-		glTexParameteri(target, GL_TEXTURE_MIN_FILTER, filter);
-		glTexParameteri(target, GL_TEXTURE_MAG_FILTER, filter);
+		glTexParameteri(getTarget(), GL_TEXTURE_MIN_FILTER, filter);
+		glTexParameteri(getTarget(), GL_TEXTURE_MAG_FILTER, filter);
 	}
 
 	public void setWrap(int wrap) {
 		bind();
-		glTexParameteri(target, GL_TEXTURE_WRAP_S, wrap);
-		glTexParameteri(target, GL_TEXTURE_WRAP_T, wrap);
+		glTexParameteri(getTarget(), GL_TEXTURE_WRAP_S, wrap);
+		glTexParameteri(getTarget(), GL_TEXTURE_WRAP_T, wrap);
 	}
 
 	public void bind() {
 		if (!valid())
 			throw new IllegalStateException("trying to bind a texture that was disposed");
-		glBindTexture(target, id);
+		glBindTexture(getTarget(), id);
 	}
 	
 	public void dispose() {
@@ -229,11 +252,11 @@ public class Texture implements ITexture {
 		return id!=0;
 	}
 
-	public float getWidth() {
+	public int getWidth() {
 		return width;
 	}
 	
-	public float getHeight() {
+	public int getHeight() {
 		return height;
 	}
 	

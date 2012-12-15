@@ -63,7 +63,7 @@ public class Color {
 	public final static Color ORANGE = new Color(255, 200, 0, 255);
 	/** The fixed colour dark magenta */
 	public final static Color MAGENTA = new Color(255, 0, 255, 255);
-
+	
 	/** The red component [0.0 - 1.0]. */
 	public float r;
 	/** The green component [0.0 - 1.0]. */

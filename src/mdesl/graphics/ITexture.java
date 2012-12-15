@@ -40,8 +40,8 @@ package mdesl.graphics;
 public interface ITexture {
 
 	public Texture getTexture();
-	public float getWidth();
-	public float getHeight();
+	public int getWidth();
+	public int getHeight();
 	public float getU();
 	public float getV();
 	public float getU2();

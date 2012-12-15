@@ -58,7 +58,7 @@ public class BitmapFont {
 	int descent;
 	int pages;
 	Glyph[] glyphs;
-	Texture[] texturePages;
+	TextureRegion[] texturePages;
 		
 	class Glyph {
 		int chr;
@@ -78,9 +78,9 @@ public class BitmapFont {
 			return kerning[c];
 		}
 		
-		void updateRegion(Texture tex) {
+		void updateRegion(TextureRegion tex) {
 			if (region==null)
-				region = new TextureRegion(tex);
+				region = new TextureRegion(tex, 0, 0, tex.getWidth(), tex.getHeight());
 			region.set(tex, x, y, width, height);
 		}
 	}
@@ -90,22 +90,26 @@ public class BitmapFont {
 	}
 	
 	public BitmapFont(URL fontDef, Texture texture) throws IOException {
+		this(fontDef.openStream(), new TextureRegion(texture));
+	}
+	
+	public BitmapFont(URL fontDef, TextureRegion texture) throws IOException {
 		this(fontDef.openStream(), texture);
 	}
 		
-	public BitmapFont(InputStream fontDef, Texture texture) throws IOException {
-		this(fontDef, new Texture[] { texture });
+	public BitmapFont(InputStream fontDef, TextureRegion texture) throws IOException {
+		this(fontDef, new TextureRegion[] { texture });
 	}
 	
-	public BitmapFont(InputStream fontDef, Texture[] texturePages) throws IOException {
+	public BitmapFont(InputStream fontDef, TextureRegion[] texturePages) throws IOException {
 		this(fontDef, Charset.defaultCharset(), texturePages);
 	}
 	
-	public BitmapFont(InputStream fontDef, Charset charset, Texture[] texturePages) throws IOException {
+	public BitmapFont(InputStream fontDef, Charset charset, TextureRegion[] texturePages) throws IOException {
 		this.texturePages = texturePages;
 		parseFont(fontDef, charset);
 	}
-	
+
 	public int getLineHeight() {
 		return lineHeight;
 	}
@@ -127,12 +131,43 @@ public class BitmapFont {
 			
 			if (lastGlyph!=null)
 				x += lastGlyph.getKerning(c);
-			else
-				x -= g.xoffset;
+			
 			lastGlyph = g;
 			batch.draw(g.region, x + g.xoffset, y + g.yoffset, g.width, g.height);
 			x += g.xadvance;
 		}
+	}
+	
+	public int getBaseline() {
+		return baseLine;
+	}
+	
+	public int getWidth(CharSequence text) {
+		return getWidth(text, 0, text.length());
+	}
+	
+	public int getWidth(CharSequence text, int start, int end) {
+		Glyph lastGlyph = null;
+		int width = 0;
+		for (int i=start; i<end; i++) {
+			char c = text.charAt(i);
+			//TODO: make unsupported glyphs a bit cleaner...
+			if (c > glyphs.length || c < 0)
+				continue;
+			Glyph g = glyphs[c];
+			if (g==null)
+				continue;
+			
+			if (lastGlyph!=null)
+				width += lastGlyph.getKerning(c);
+			
+			lastGlyph = g;
+//			width += g.width + g.xoffset;
+			
+//			width += g.width + g.xoffset;
+			width += g.xadvance;
+		}
+		return width;
 	}
 	
 	private static String parse(String line, String tag) {

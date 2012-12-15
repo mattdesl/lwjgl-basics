@@ -31,7 +31,6 @@
 package mdesl.graphics;
 
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL20.glUniform1i;
 
 import java.nio.FloatBuffer;
 import java.util.Arrays;
@@ -46,7 +45,6 @@ import mdesl.util.MathUtil;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Matrix4f;
-import org.lwjgl.util.vector.Vector2f;
 
 /** @author Matt (mdesl) DesLauriers
  * @author matheusdev */
@@ -94,16 +92,16 @@ public class SpriteBatch {
 	private Color color = new Color();
 	private boolean drawing = false;
 	
-	static ShaderProgram getDefaultShader() throws LWJGLException {
-		return defaultShader == null ? new ShaderProgram(DEFAULT_VERT_SHADER, DEFAULT_FRAG_SHADER,
-				ATTRIBUTES) : defaultShader;
+	public static ShaderProgram getDefaultShader() throws LWJGLException {
+		return defaultShader == null ? (defaultShader = new ShaderProgram(DEFAULT_VERT_SHADER, DEFAULT_FRAG_SHADER,
+				ATTRIBUTES)) : defaultShader;
 	}
 	
 	public SpriteBatch(ShaderProgram program) {
 		this(program, 1000);
 	}
 
-	public SpriteBatch(ShaderProgram program, int size) {
+	public SpriteBatch(ShaderProgram program, int size) {		
 		this.program = program;
 
 		// later we can do some abstraction to replace this with VBOs...
@@ -118,6 +116,11 @@ public class SpriteBatch {
 		resize(Display.getWidth(), Display.getHeight());
 	}
 
+	/**
+	 * Creates a sprite batch with a default shader, shared across all sprite batches.
+	 * @param size
+	 * @throws LWJGLException
+	 */
 	public SpriteBatch(int size) throws LWJGLException {
 		this(getDefaultShader(), size);
 	}
@@ -141,7 +144,7 @@ public class SpriteBatch {
 	 * @param width
 	 * @param height */
 	public void resize(int width, int height) {
-		projMatrix = MathUtil.toOrtho2D(projMatrix, 0, 0, Display.getWidth(), Display.getHeight());
+		projMatrix = MathUtil.toOrtho2D(projMatrix, 0, 0, width, height);
 		updateUniforms();
 	}
 
@@ -205,6 +208,8 @@ public class SpriteBatch {
 	 * @param updateUniforms whether to call updateUniforms after changing the
 	 * programs */
 	public void setShader(ShaderProgram program, boolean updateUniforms) {
+		if (program==null)
+			throw new NullPointerException("shader cannot be null; use getDefaultShader instead");
 		if (drawing) {
 			flush();
 			this.program.use();
@@ -222,6 +227,10 @@ public class SpriteBatch {
 		setShader(program, true);
 	}
 
+	public ShaderProgram getShader() {
+		return program;
+	}
+	
 	public void begin() {
 		if (drawing)
 			throw new IllegalStateException("must not be drawing before calling begin()");
@@ -261,6 +270,16 @@ public class SpriteBatch {
 		float v2 = (srcY + srcHeight) / tex.getHeight();
 		draw(tex, dstX, dstY, dstWidth, dstHeight, u, v, u2, v2);
 	}
+	
+	public void drawRegion(TextureRegion region, float srcX, float srcY, float srcWidth, float srcHeight, float dstX, float dstY) {
+		drawRegion(region, srcX, srcY, srcWidth, srcHeight, dstX, dstY, srcWidth, srcHeight);
+	}
+	
+	public void drawRegion(TextureRegion region, float srcX, float srcY, float srcWidth, float srcHeight,
+			float dstX, float dstY, float dstWidth, float dstHeight) {
+		drawRegion(region.getTexture(), region.getRegionX() + srcX, region.getRegionY() + srcY, 
+				srcWidth, srcHeight, dstX, dstY, dstWidth, dstHeight);		
+	}
 
 	public void draw(ITexture tex, float x, float y) {
 		draw(tex, x, y, tex.getWidth(), tex.getHeight());
@@ -270,7 +289,19 @@ public class SpriteBatch {
 		draw(tex, x, y, width, height, tex.getU(), tex.getV(), tex.getU2(), tex.getV2());
 	}
 
-	public void draw(ITexture tex, float x, float y, float width, float height, float u, float v,
+	
+	public void draw(ITexture tex, float x, float y, float originX, float originY, float rotationRadians) {
+		draw(tex, x, y, tex.getWidth(), tex.getHeight(), originX, originY, rotationRadians);
+	}
+	
+	public void draw(ITexture tex, float x, float y, float width, float height, 
+			float originX, float originY, float rotationRadians) {
+		draw(tex, x, y, width, height, originX, originY, rotationRadians, tex.getU(), tex.getV(), tex.getU2(), tex.getV2());
+	}
+	
+	public void draw(ITexture tex, float x, float y, float width, float height, 
+			float originX, float originY, float rotationRadians,
+			float u, float v,
 			float u2, float v2) {
 		checkFlush(tex);
 		final float r = color.r;
@@ -278,15 +309,64 @@ public class SpriteBatch {
 		final float b = color.b;
 		final float a = color.a;
 		
+
+		float x1,y1, x2,y2, x3,y3, x4,y4;
+		
+		if (rotationRadians != 0) {
+			float scaleX = 1f;//width/tex.getWidth();
+			float scaleY = 1f;//height/tex.getHeight();
+	
+			float cx = originX*scaleX;
+			float cy = originY*scaleY;
+	
+			float p1x = -cx;
+			float p1y = -cy;
+			float p2x = width - cx;
+			float p2y = -cy;
+			float p3x = width - cx;
+			float p3y = height - cy;
+			float p4x = -cx;
+			float p4y = height - cy;
+	
+			final float cos = (float) Math.cos(rotationRadians);
+			final float sin = (float) Math.sin(rotationRadians);
+			
+			x1 = x + (cos * p1x - sin * p1y) + cx; // TOP LEFT
+			y1 = y + (sin * p1x + cos * p1y) + cy;
+			x2 = x + (cos * p2x - sin * p2y) + cx; // TOP RIGHT
+			y2 = y + (sin * p2x + cos * p2y) + cy;
+			x3 = x + (cos * p3x - sin * p3y) + cx; // BOTTOM RIGHT
+			y3 = y + (sin * p3x + cos * p3y) + cy;
+			x4 = x + (cos * p4x - sin * p4y) + cx; // BOTTOM LEFT
+			y4 = y + (sin * p4x + cos * p4y) + cy;
+		} else {
+			x1 = x;
+			y1 = y;
+			
+			x2 = x+width;
+			y2 = y;
+			
+			x3 = x+width;
+			y3 = y+height;
+			
+			x4 = x;
+			y4 = y+height;
+		}
+		
 		// top left, top right, bottom left
-		vertex(x, y, r, g, b, a, u, v);
-		vertex(x + width, y, r, g, b, a, u2, v);
-		vertex(x, y + height, r, g, b, a, u, v2);
+		vertex(x1, y1, r, g, b, a, u, v);
+		vertex(x2, y2, r, g, b, a, u2, v);
+		vertex(x4, y4, r, g, b, a, u, v2);
 
 		// top right, bottom right, bottom left
-		vertex(x + width, y, r, g, b, a, u2, v);
-		vertex(x + width, y + height, r, g, b, a, u2, v2);
-		vertex(x, y + height, r, g, b, a, u, v2);
+		vertex(x2, y2, r, g, b, a, u2, v);
+		vertex(x3, y3, r, g, b, a, u2, v2);
+		vertex(x4, y4, r, g, b, a, u, v2);
+	}
+	
+	public void draw(ITexture tex, float x, float y, float width, float height, float u, float v,
+			float u2, float v2) {
+		draw(tex, x, y, width, height, x, y, 0f, u, v, u2, v2);
 	}
 
 	/** Renders a texture using custom vertex attributes; e.g. for different
