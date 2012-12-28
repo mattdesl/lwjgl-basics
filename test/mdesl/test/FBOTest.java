@@ -93,9 +93,7 @@ public class FBOTest extends SimpleGame {
 		//since our FBO is a different size than our Display, 
 		//we need to resize our SpriteBatch in order for it to render correctly
 		System.out.println(fbo.getWidth()+" "+fbo.getTexture().getWidth());
-//		batch.resize(Display.getWidth(), Display.getHeight());
-//		batch.resize(fbo.getTexture().getWidth(), fbo.getTexture().getHeight());
-//		batch.resize(fboRegion.getWidth(), fboRegion.getHeight());
+
 		batch.resize(fbo.getWidth(), fbo.getHeight());
 		
 		//setup our alpha blending to avoid blending twice
@@ -135,7 +133,7 @@ public class FBOTest extends SimpleGame {
 		
 		//we don't need super.render() since it just clears the screen, and we have that above
 		
-		//whever the slider moves we will need to call renderSlider() to update the offscreen texture
+		//whenever the slider moves we will need to call renderSlider() to update the offscreen texture
 		
 		
 		//render the offscreen texture with "premultiplied alpha" blending
