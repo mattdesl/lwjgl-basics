@@ -52,7 +52,7 @@ import org.lwjgl.opengl.GLContext;
  * 
  * @author davedes
  */
-public class Framebuffer implements ITexture {
+public class FrameBuffer implements ITexture {
 	
 	public static boolean isSupported() {
 		return GLContext.getCapabilities().GL_EXT_framebuffer_object;
@@ -63,7 +63,7 @@ public class Framebuffer implements ITexture {
 	protected Texture texture;
 	protected boolean ownsTexture;
 	
-	Framebuffer(Texture texture, boolean ownsTexture) throws LWJGLException {
+	FrameBuffer(Texture texture, boolean ownsTexture) throws LWJGLException {
 		this.texture = texture;
 		this.ownsTexture = ownsTexture;
 		if (!isSupported()) {
@@ -91,7 +91,7 @@ public class Framebuffer implements ITexture {
 	 * @param texture the texture to use
 	 * @throws LWJGLException if the framebuffer was not initialized correctly
 	 */
-	public Framebuffer(Texture texture) throws LWJGLException {
+	public FrameBuffer(Texture texture) throws LWJGLException {
 		this(texture, false);
 	}
 	
@@ -103,15 +103,15 @@ public class Framebuffer implements ITexture {
 	 * @param wrap
 	 * @throws LWJGLException
 	 */
-	public Framebuffer(int width, int height, int filter, int wrap) throws LWJGLException {
+	public FrameBuffer(int width, int height, int filter, int wrap) throws LWJGLException {
 		this(new Texture(width, height, filter, wrap), true);
 	}
 	
-	public Framebuffer(int width, int height, int filter) throws LWJGLException {
+	public FrameBuffer(int width, int height, int filter) throws LWJGLException {
 		this(width, height, filter, Texture.DEFAULT_WRAP);
 	}
 	
-	public Framebuffer(int width, int height) throws LWJGLException {
+	public FrameBuffer(int width, int height) throws LWJGLException {
 		this(width, height, Texture.DEFAULT_FILTER, Texture.DEFAULT_WRAP);
 	}
 	

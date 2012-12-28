@@ -76,11 +76,11 @@ public class SpriteBatch {
 	public static int renderCalls = 0;
 
 	protected FloatBuffer buf16;
-	protected Matrix4f projMatrix;
-	protected Matrix4f viewMatrix;
-	protected Matrix4f projViewMatrix;
-	protected Matrix4f transpositionPool;
-
+	protected Matrix4f projMatrix = new Matrix4f();
+	protected Matrix4f viewMatrix = new Matrix4f();
+	protected Matrix4f transpositionPool = new Matrix4f();
+	private Matrix4f projViewMatrix = new Matrix4f(); //only for re-using Matrix4f objects
+	
 	protected Texture texture;
 	protected ShaderProgram program;
 
@@ -100,8 +100,12 @@ public class SpriteBatch {
 	public SpriteBatch(ShaderProgram program) {
 		this(program, 1000);
 	}
+	
+	public SpriteBatch(ShaderProgram program, int size) {
+		this(program, 1000, true);
+	}
 
-	public SpriteBatch(ShaderProgram program, int size) {		
+	public SpriteBatch(ShaderProgram program, int size, boolean updateUniforms) {		
 		this.program = program;
 
 		// later we can do some abstraction to replace this with VBOs...
@@ -109,8 +113,6 @@ public class SpriteBatch {
 
 		// max indices before we need to flush the renderer
 		maxIndex = size * 6;
-
-		viewMatrix = new Matrix4f();
 
 		// default size
 		resize(Display.getWidth(), Display.getHeight());
@@ -135,6 +137,12 @@ public class SpriteBatch {
 
 	public Matrix4f getProjectionMatrix() {
 		return projMatrix;
+	}
+	
+	public Matrix4f getCombinedMatrix() {
+		Matrix4f.mul(Matrix4f.transpose(projMatrix, transpositionPool), 
+				viewMatrix, projViewMatrix);
+		return projViewMatrix;
 	}
 	
 	/** A convenience method to resize the projection matrix to the given
@@ -165,7 +173,7 @@ public class SpriteBatch {
 	public void setColor(float r, float g, float b, float a) {
 		color.set(r, g, b, a);
 	}
-
+	
 	/** Call to multiply the the projection with the view matrix and save the
 	 * result in the uniform mat4 {@value #U_PROJ_VIEW}, as well as update the
 	 * {@value #U_TEXTURE} uniform. */
@@ -177,9 +185,7 @@ public class SpriteBatch {
 	 * result in the uniform mat4 {@value #U_PROJ_VIEW}, as well as update the
 	 * {@value #U_TEXTURE} uniform. */
 	public void updateUniforms(ShaderProgram program) {
-		// Multiply the transposed projection matrix with the view matrix:
-		projViewMatrix = Matrix4f.mul(Matrix4f.transpose(projMatrix, transpositionPool),
-				viewMatrix, projViewMatrix);
+		projViewMatrix = getCombinedMatrix();
 
 		// bind the program before sending uniforms
 		program.use();
@@ -189,7 +195,8 @@ public class SpriteBatch {
 		//disable strict mode so we don't run into any problems
 		ShaderProgram.setStrictMode(false);
 		
-		//we can now utilize ShaderProgram's hash map which may be better than glGetUniformLocation
+		// we can now utilize ShaderProgram's hash map which may be better than
+		// glGetUniformLocation
 		
 		// Store the the multiplied matrix in the "projViewMatrix"-uniform:
 		program.setUniformMatrix(U_PROJ_VIEW, false, projViewMatrix);
@@ -210,13 +217,13 @@ public class SpriteBatch {
 	public void setShader(ShaderProgram program, boolean updateUniforms) {
 		if (program==null)
 			throw new NullPointerException("shader cannot be null; use getDefaultShader instead");
-		if (drawing) {
+		if (drawing) //if we are already drawing, flush the batch before switching shaders
 			flush();
-			this.program.use();
-		}
-		this.program = program;
-		if (updateUniforms)
+		this.program = program; //now switch the shader
+		if (updateUniforms) //send uniform data to shader
 			updateUniforms();
+		else if (drawing) //if we don't want to update, then just start the program if we are drawing
+			program.use();
 	}
 
 	/** Changes the shader and updates it with the current texture and projView

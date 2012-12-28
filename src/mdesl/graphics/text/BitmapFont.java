@@ -114,6 +114,10 @@ public class BitmapFont {
 		return lineHeight;
 	}
 	
+	public TextureRegion[] getTexturePages() {
+		return texturePages;
+	}
+	
 	public void drawText(SpriteBatch batch, CharSequence text, int x, int y) {
 		drawText(batch, text, x, y, 0, text.length());
 	}

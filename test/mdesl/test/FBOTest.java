@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
 import javax.imageio.ImageIO;
 
 import mdesl.graphics.Color;
-import mdesl.graphics.Framebuffer;
+import mdesl.graphics.FrameBuffer;
 import mdesl.graphics.SpriteBatch;
 import mdesl.graphics.Texture;
 import mdesl.graphics.TextureRegion;
@@ -45,7 +45,7 @@ public class FBOTest extends SimpleGame {
 	Texture atlas;
 	TextureRegion track, thumb;
 	
-	Framebuffer fbo;
+	FrameBuffer fbo;
 	TextureRegion fboRegion;
 	
 	protected void create() throws LWJGLException {
@@ -63,12 +63,12 @@ public class FBOTest extends SimpleGame {
 			
 			//create a new FBO with the width and height of our track
 			if (Texture.isNPOTSupported()) {
-				fbo = new Framebuffer(width, height);
+				fbo = new FrameBuffer(width, height);
 				fboRegion = new TextureRegion(fbo.getTexture());
 			} else {
 				int texWidth = Texture.toPowerOfTwo(width);
 				int texHeight = Texture.toPowerOfTwo(height);
-				fbo = new Framebuffer(texWidth, texHeight);
+				fbo = new FrameBuffer(texWidth, texHeight);
 				fboRegion = new TextureRegion(fbo.getTexture(), 0, texHeight-height, width, height);
 			}
 			fboRegion.flip(false, true);

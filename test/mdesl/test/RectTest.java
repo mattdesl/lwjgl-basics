@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import mdesl.graphics.Color;
-import mdesl.graphics.Framebuffer;
+import mdesl.graphics.FrameBuffer;
 import mdesl.graphics.SpriteBatch;
 import mdesl.graphics.Texture;
 import mdesl.graphics.TextureRegion;

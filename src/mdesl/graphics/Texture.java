@@ -32,7 +32,11 @@ package mdesl.graphics;
 
 import static org.lwjgl.opengl.GL11.GL_CLAMP;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_LINEAR_MIPMAP_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_LINEAR_MIPMAP_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_NEAREST;
+import static org.lwjgl.opengl.GL11.GL_NEAREST_MIPMAP_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_NEAREST_MIPMAP_NEAREST;
 import static org.lwjgl.opengl.GL11.GL_PACK_ALIGNMENT;
 import static org.lwjgl.opengl.GL11.GL_REPEAT;
 import static org.lwjgl.opengl.GL11.GL_RGBA;
@@ -59,6 +63,8 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 
 import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.EXTFramebufferObject;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
 import de.matthiasmann.twl.utils.PNGDecoder;
@@ -91,6 +97,10 @@ public class Texture implements ITexture {
 	// Some filters, included here for convenience
 	public static final int LINEAR = GL_LINEAR;
 	public static final int NEAREST = GL_NEAREST;
+	public static final int LINEAR_MIPMAP_LINEAR = GL_LINEAR_MIPMAP_LINEAR;
+	public static final int LINEAR_MIPMAP_NEAREST = GL_LINEAR_MIPMAP_NEAREST;
+	public static final int NEAREST_MIPMAP_NEAREST = GL_NEAREST_MIPMAP_NEAREST;
+	public static final int NEAREST_MIPMAP_LINEAR = GL_NEAREST_MIPMAP_LINEAR;
 	
 	// Some wrap modes, included here for convenience
 	public static final int CLAMP = GL_CLAMP;
@@ -124,22 +134,27 @@ public class Texture implements ITexture {
 	public Texture(int width, int height, int filter) {
 		this(width, height, filter, DEFAULT_WRAP);
 	}
-
+	
 	/** Creates an empty OpenGL texture with the given width and height, where
 	 * each pixel is transparent black (0, 0, 0, 0).
 	 * 
 	 * @param width the width of the texture
 	 * @param height the height of the texture
-	 * @param filter the filter to use
-	 * @param wrap the wrap mode to use */
+	 * @param minFilter the minification filter to use
+	 * @param magFilter the magnification filter to use
+	 * @param wrap the wrap mode to use
+	 * @param genMipmaps - whether to generate mipmaps, which requires 
+	 * 		GL_EXT_framebuffer_object (or GL3+) */
 	public Texture(int width, int height, int filter, int wrap) {
 		glEnable(getTarget());
 		id = glGenTextures();
 		this.width = width;
 		this.height = height;
 		bind();
+		
 		setFilter(filter);
 		setWrap(wrap);
+		
 		ByteBuffer buf = BufferUtils.createByteBuffer(width * height * 4);
 		upload(GL_RGBA, buf);
 	}
@@ -151,8 +166,17 @@ public class Texture implements ITexture {
 	public Texture(URL pngRef, int filter) throws IOException {
 		this(pngRef, filter, DEFAULT_WRAP);
 	}
-
+	
 	public Texture(URL pngRef, int filter, int wrap) throws IOException {
+		this(pngRef, filter, filter, wrap, false);
+	}
+	
+	public Texture(URL pngRef, int filter, boolean genMipmap) throws IOException {
+		this(pngRef, filter, filter, DEFAULT_WRAP, genMipmap);
+	}
+
+	public Texture(URL pngRef, int minFilter, int magFilter, int wrap,
+			boolean genMipmap) throws IOException {
 		//TODO: npot check
 		InputStream input = null;
 		try {
@@ -169,9 +193,14 @@ public class Texture implements ITexture {
 			id = glGenTextures();
 
 			bind();
-			setFilter(filter);
+			setFilter(minFilter, magFilter);
 			setWrap(wrap);
 			upload(GL_RGBA, buf);
+			
+			//use EXT since we are targeting 2.0+
+			if (genMipmap) {
+				EXTFramebufferObject.glGenerateMipmapEXT(getTarget());
+			}
 		} finally {
 			if (input != null) {
 				try {
@@ -220,11 +249,15 @@ public class Texture implements ITexture {
 	}
 
 	public void setFilter(int filter) {
-		bind();
-		glTexParameteri(getTarget(), GL_TEXTURE_MIN_FILTER, filter);
-		glTexParameteri(getTarget(), GL_TEXTURE_MAG_FILTER, filter);
+		setFilter(filter, filter);
 	}
-
+	
+	public void setFilter(int minFilter, int magFilter) {
+		bind();
+		glTexParameteri(getTarget(), GL_TEXTURE_MIN_FILTER, minFilter);
+		glTexParameteri(getTarget(), GL_TEXTURE_MAG_FILTER, magFilter);
+	}
+	
 	public void setWrap(int wrap) {
 		bind();
 		glTexParameteri(getTarget(), GL_TEXTURE_WRAP_S, wrap);
