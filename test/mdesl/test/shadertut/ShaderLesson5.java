@@ -6,9 +6,9 @@ import static org.lwjgl.opengl.GL11.glClearColor;
 
 import java.io.IOException;
 
-import mdesl.graphics.FrameBuffer;
 import mdesl.graphics.SpriteBatch;
 import mdesl.graphics.Texture;
+import mdesl.graphics.glutils.FrameBuffer;
 import mdesl.graphics.glutils.ShaderProgram;
 import mdesl.test.Game;
 import mdesl.test.SimpleGame;

@@ -19,10 +19,10 @@ import java.nio.ByteBuffer;
 import javax.imageio.ImageIO;
 
 import mdesl.graphics.Color;
-import mdesl.graphics.FrameBuffer;
 import mdesl.graphics.SpriteBatch;
 import mdesl.graphics.Texture;
 import mdesl.graphics.TextureRegion;
+import mdesl.graphics.glutils.FrameBuffer;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;

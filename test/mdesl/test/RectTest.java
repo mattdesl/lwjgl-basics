@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import mdesl.graphics.Color;
-import mdesl.graphics.FrameBuffer;
 import mdesl.graphics.SpriteBatch;
 import mdesl.graphics.Texture;
 import mdesl.graphics.TextureRegion;
+import mdesl.graphics.glutils.FrameBuffer;
 import mdesl.graphics.text.BitmapFont;
 
 import org.lwjgl.BufferUtils;

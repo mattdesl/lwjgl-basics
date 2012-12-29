@@ -28,7 +28,7 @@
  *	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *	POSSIBILITY OF SUCH DAMAGE.
  */
-package mdesl.graphics;
+package mdesl.graphics.glutils;
 
 import static org.lwjgl.opengl.EXTFramebufferObject.GL_FRAMEBUFFER_EXT;
 import static org.lwjgl.opengl.EXTFramebufferObject.glBindFramebufferEXT;
@@ -41,6 +41,9 @@ import static org.lwjgl.opengl.GL30.GL_COLOR_ATTACHMENT0;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER;
 import static org.lwjgl.opengl.GL30.GL_FRAMEBUFFER_COMPLETE;
 import static org.lwjgl.opengl.GL30.glDeleteFramebuffers;
+
+import mdesl.graphics.ITexture;
+import mdesl.graphics.Texture;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;

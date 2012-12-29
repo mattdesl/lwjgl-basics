@@ -1,0 +1,13 @@
+SOURCE AUTHORS
+--------------
+
+LWJGL / JInput:
+http://lwjgl.org/
+
+Matthias Mann's PNGDecoder:
+http://hg.l33tlabs.org/twl/file/tip/src/de/matthiasmann/twl/utils/PNGDecoder.java
+
+LibGDX et al - TextureRegion source and plenty of other inspiration
+http://libgdx.badlogicgames.com/
+
+Unless otherwise stated, source code & tutorials written by Matt DesLauriers (aka mattdesl, davedes) 
