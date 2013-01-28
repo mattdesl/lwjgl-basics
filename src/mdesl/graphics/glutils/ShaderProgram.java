@@ -206,7 +206,7 @@ public class ShaderProgram {
 		try {
 			linkProgram(attribLocations);
 		} catch (LWJGLException e) {
-			release();
+			dispose();
 			throw e;
 		}
 		//TODO: for convenience it might be nice to warn non-critical errors in a log
@@ -363,7 +363,7 @@ public class ShaderProgram {
 	 * however, since it is not a commonly used feature and thus not well tested
 	 * on all drivers, it should be used with caution. Shaders shouldn't be used
 	 * after being released. */
-	public void releaseShaders() {
+	public void disposeShaders() {
 		if (vert != 0) {
 			glDetachShader(getID(), vert);
 			glDeleteShader(vert);
@@ -378,11 +378,11 @@ public class ShaderProgram {
 
 	/** If this program has not yet been released, this will releases 
 	 * this program and its shaders. To only release the
-	 * shaders (not the program itself), call releaseShaders(). Programs will be
+	 * shaders (not the program itself), call disposeShaders(). Programs will be
 	 * considered "invalid" after being released, and should no longer be used. */
-	public void release() {
+	public void dispose() {
 		if (program != 0) {
-			releaseShaders();
+			disposeShaders();
 			glDeleteProgram(program);
 			program = 0;
 		}
@@ -1048,11 +1048,11 @@ public class ShaderProgram {
 	
 	public void setUniformf(int loc, Vector3f v) {
 		if (loc==-1) return;
-		setUniformf(loc, v.x, v.y, v.y);
+		setUniformf(loc, v.x, v.y, v.z);
 	}
 	
 	public void setUniformf(int loc, Vector4f v) {
 		if (loc==-1) return;
-		setUniformf(loc, v.x, v.y, v.y, v.z);
+		setUniformf(loc, v.x, v.y, v.z, v.w);
 	}
 }

@@ -213,7 +213,7 @@ public class BitmapFont {
 			line = br.readLine();
 			if (line == null) break;
 			if (line.startsWith("chars")) {
-				System.out.println(line);
+//				System.out.println(line);
 				int count = parseInt(line, "count");
 				glyphsList = new ArrayList<Glyph>(count);
 				continue;
@@ -298,5 +298,13 @@ public class BitmapFont {
 		} catch (IOException e) {
 			//silent
 		}
+	}
+	
+	/**
+	 * Disposes all texture pages associated with this font.
+	 */
+	public void dispose() {
+		for (TextureRegion t : getTexturePages())
+			t.getTexture().dispose();
 	}
 }

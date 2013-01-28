@@ -31,6 +31,9 @@
 package mdesl.test;
 
 import org.lwjgl.LWJGLException;
+import org.lwjgl.Sys;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
@@ -43,8 +46,27 @@ public abstract class Game {
 	// Whether our game loop is running
 	protected boolean running = false;
 	
-	public void setDisplayMode(int width, int height, boolean fullscreen) throws LWJGLException {
+	
+	/** time at last frame */
+	private long lastFrame;
+	private int fpsTick;
+	/** frames per second */
+	private int fps;
+	/** last fps time */
+	private long lastFPS;
+	/** the delta time in milliseconds */
+	private int delta;
+	
+	
+	private boolean mouseWasDown = false;
+	private int lastMouseX, lastMouseY;
+	
+	public void setDisplayMode(int width, int height) throws LWJGLException {
 		Display.setDisplayMode(new DisplayMode(width, height));
+	}
+	
+	public void setDisplayMode(int width, int height, boolean fullscreen) throws LWJGLException {
+		setDisplayMode(width, height);
 		Display.setFullscreen(fullscreen);
 	}
 		
@@ -65,14 +87,59 @@ public abstract class Game {
 		
 		running = true;
 		
+		delta = tick();
+		lastFPS = getTime();
+		
 		// While we're still running and the user hasn't closed the window... 
 		while (running && !Display.isCloseRequested()) {
+			delta = tick();
+			
 			// If the game was resized, we need to update our projection
 			if (Display.wasResized())
 				resize();
 			
+			Keyboard.poll();
+			while (Keyboard.next()) {
+				char c = Keyboard.getEventCharacter();
+				int k = Keyboard.getEventKey();
+				boolean down = Keyboard.getEventKeyState();
+				if (down)
+					keyPressed(k, c);
+				else
+					keyReleased(k, c);
+			}
+			Mouse.poll();
+			while (Mouse.next()) {
+				int btn = Mouse.getEventButton();
+				boolean btnDown = Mouse.getEventButtonState();
+				int wheel = Mouse.getEventDWheel();
+				int x = Mouse.getEventX();
+				int y = Mouse.getEventY();
+//				System.out.println(x+" "+y+" "+dx+" "+dy+" "+wheel+" "+btnDown);
+				
+				if (btnDown) {
+					mouseWasDown = true;
+					mousePressed(x, y, btn);
+				} else if (mouseWasDown) {
+					mouseWasDown = false;
+//					mouseReleased(x, y, btn);	
+				}
+				if (lastMouseX!=x || lastMouseY!=y) {
+//					mouseMoved(x, y, lastMouseX, lastMouseY);
+					lastMouseX = x;
+					lastMouseY = y;						
+				}
+				
+				if (wheel!=0) {
+					mouseWheelChanged(wheel/120);
+				}
+			}
+			
 			// Render the game
 			render();
+			
+			//update FPS ticker
+			updateFPS();
 			
 			// Flip the buffers and sync to 60 FPS
 			Display.update();
@@ -89,6 +156,29 @@ public abstract class Game {
 		running = false;
 	}
 	
+	protected void keyPressed(int key, char c) {
+		
+	}
+	
+	protected void keyReleased(int key, char c) {
+		
+	}
+	
+//	protected void mouseMoved(int x, int y, int ox, int oy) {
+//		System.out.println("moved");
+//	}
+	
+	protected void mousePressed(int x, int y, int button) {
+	
+	}
+//	
+//	protected void mouseReleased(int x, int y, int button) {
+//		System.out.println("rel");
+//	}
+	
+	protected void mouseWheelChanged(int delta) {
+	}
+	
 	// Called to setup our game and context
 	protected abstract void create() throws LWJGLException;
 	
@@ -100,4 +190,37 @@ public abstract class Game {
 	
 	// Called to destroy our game upon exiting
 	protected abstract void dispose() throws LWJGLException;
+	
+	public int getDeltaTime() {
+		return delta;
+	}
+	
+	public int getFPS() {
+		return fps;
+	}
+	
+	private int tick() {
+		long time = getTime();
+		int delta = (int)(time - lastFrame);
+		lastFrame = time;
+		return delta;
+	}
+	
+	public void updateFPS() {
+		if (getTime() - lastFPS > 1000) {
+			fps = fpsTick;
+			fpsTick = 0;
+			lastFPS += 1000;
+		}
+		fpsTick++;
+	}
+
+	/**
+	 * Get the time in milliseconds
+	 * 
+	 * @return The system time in milliseconds
+	 */
+	public long getTime() {
+	    return (Sys.getTime() * 1000) / Sys.getTimerResolution();
+	}
 }
