@@ -32,6 +32,9 @@ package mdesl.util;
 
 import org.lwjgl.util.vector.Matrix4f;
 
+/**
+ * Math utilities; adapted from LibGDX's vector classes for use with LWJGL Vector utilities
+ * /
 public class MathUtil {
 	
 	/**
