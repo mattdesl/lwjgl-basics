@@ -38,10 +38,15 @@ import mdesl.graphics.Color;
 import mdesl.graphics.SpriteBatch;
 import mdesl.graphics.Texture;
 import mdesl.graphics.TextureRegion;
+import mdesl.graphics.text.BitmapFont;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
+import org.lwjgl.util.vector.Matrix4f;
+import org.lwjgl.util.vector.Vector2f;
+import org.lwjgl.util.vector.Vector3f;
 
 public class SpriteBatchTest extends SimpleGame {
 
@@ -54,7 +59,13 @@ public class SpriteBatchTest extends SimpleGame {
 	Texture tex, tex2;
 	TextureRegion tile;
 	SpriteBatch batch;
-
+	
+	float panX, panY, rot, zoom=1f;
+	BitmapFont font;
+	final float MOVE_SPEED = 10f;
+	final float ZOOM_SPEED = 0.025f;
+	final float ROT_SPEED = 0.05f;
+	
 	protected void create() throws LWJGLException {
 		super.create();
 
@@ -63,6 +74,9 @@ public class SpriteBatchTest extends SimpleGame {
 			tex = new Texture(Util.getResource("res/tiles.png"), Texture.NEAREST);
 			tex2 = new Texture(Util.getResource("res/ptsans_00.png"));
 			tile = new TextureRegion(tex, 128, 64, 64, 64);
+			
+			font = new BitmapFont(Util.getResource("res/ptsans.fnt"), Util.getResource("res/ptsans_00.png"));
+			
 		} catch (IOException e) {
 			// ... do something here ...
 			Sys.alert("Error", "Could not decode images!");
@@ -73,9 +87,39 @@ public class SpriteBatchTest extends SimpleGame {
 		//create our sprite batch
 		batch = new SpriteBatch();
 	}
-
-	protected void render() throws LWJGLException {
-		super.render();		
+	
+	void drawGame() {
+		//get the instance of the view matrix for our batch
+		Matrix4f view = batch.getViewMatrix();
+		
+		//reset the matrix to identity, i.e. "no camera transform"
+		view.setIdentity();
+		
+		//scale the view
+		if (zoom != 1f) {
+			view.scale(new Vector3f(zoom, zoom, 1f));
+		}
+		
+		//pan the camera by translating the view matrix
+		view.translate(new Vector2f(panX, panY));
+		
+		//after translation, we can rotate...
+		if (rot!=0f) {
+			//we want to rotate by a center origin point, so first we translate
+			view.translate(new Vector2f(Display.getWidth()/2, Display.getHeight()/2));
+			
+			//then we rotate
+			view.rotate(rot, new Vector3f(0, 0, 1));
+			
+			//then we translate back
+			view.translate(new Vector2f(-Display.getWidth()/2, -Display.getHeight()/2));
+		}
+		
+		//apply other transformations here...
+		
+		
+		//update the new view matrix
+		batch.updateUniforms();
 		
 		//start the sprite batch
 		batch.begin();
@@ -91,13 +135,56 @@ public class SpriteBatchTest extends SimpleGame {
 		
 		//tint batch red
 		batch.setColor(Color.RED); 
-		batch.draw(tex2, 200, 155);
+		batch.draw(tex2, 0, 0, Display.getWidth(), Display.getHeight());
 		
 		//reset color
 		batch.setColor(Color.WHITE);
+		
 
 		//finish the sprite batch and push the tiles to the GPU
 		batch.end();
+	}
+	
+	void drawHUD() {
+		//draw the text with identity matrix, i.e. no camera transformation
+		batch.getViewMatrix().setIdentity();
+		batch.updateUniforms();
+		
+		
+		batch.begin();
+		// ... render any hud elements
+		font.drawText(batch, "Control camera with WASD, UP/DOWN and LEFT/RIGHT", 10, 10);
+		batch.end();
+	}
+
+	protected void render() throws LWJGLException {
+		super.render();		
+		
+		
+		if (Keyboard.isKeyDown(Keyboard.KEY_A))
+			panX -= MOVE_SPEED;
+		if (Keyboard.isKeyDown(Keyboard.KEY_D))
+			panX += MOVE_SPEED;
+		if (Keyboard.isKeyDown(Keyboard.KEY_W))
+			panY -= MOVE_SPEED;
+		if (Keyboard.isKeyDown(Keyboard.KEY_S))
+			panY += MOVE_SPEED;
+		
+		if (Keyboard.isKeyDown(Keyboard.KEY_UP))
+			zoom += ZOOM_SPEED;
+		if (Keyboard.isKeyDown(Keyboard.KEY_DOWN))
+			zoom -= ZOOM_SPEED;
+
+		zoom = Math.max(0.15f, zoom);
+		
+		if (Keyboard.isKeyDown(Keyboard.KEY_LEFT))
+			rot -= ROT_SPEED;
+		if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT))
+			rot += ROT_SPEED;
+		
+		drawGame();
+		
+		drawHUD();
 	}
 	
 
@@ -105,4 +192,5 @@ public class SpriteBatchTest extends SimpleGame {
 		super.resize();
 		batch.resize(Display.getWidth(), Display.getHeight());
 	}
+	
 }
