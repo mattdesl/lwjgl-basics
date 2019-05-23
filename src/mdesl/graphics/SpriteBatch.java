@@ -243,6 +243,7 @@ public class SpriteBatch {
 			throw new IllegalStateException("must not be drawing before calling begin()");
 		drawing = true;
 		program.use();
+		updateUniforms();
 		idx = 0;
 		renderCalls = 0;
 		texture = null;
